@@ -1,35 +1,67 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { Image, View } from 'react-native';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+    <View style={{ flex: 1 }}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarLabelStyle: {
+            fontFamily: 'SedgwickAve',
+          },
+          tabBarShowLabel: false,
+          sceneContainerStyle: {
+            paddingTop: 64,
+          },
         }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+      >
+        {/* Permanent Tabs */}
+        <Tabs.Screen
+          name="the-homestead"
+          options={{
+            title: 'The Homestead',
+            tabBarIcon: ({ size }) => (
+              <Image
+                source={require('../assets/HCIcons/Icon_Homestead/ICON_Homestead1.png')}
+                style={{ width: size * 4.8, height: size * 4.8, marginTop: 12 }}
+                resizeMode="contain"
+                accessibilityIgnoresInvertColors
+              />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
+          name="the-field-guide"
+          options={{
+            title: 'The Field Guide',
+            tabBarIcon: ({ size }) => (
+              <Image
+                source={require('../assets/HCIcons/Icon_FieldGuide/Icon_TheFieldGuide.png')}
+                style={{ width: size * 4.8, height: size * 4.8, marginTop: 12 }}
+                resizeMode="contain"
+                accessibilityIgnoresInvertColors
+              />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
+          name="waystation"
+          options={{
+            title: 'The Waystation',
+            tabBarIcon: ({ size }) => (
+              <Image
+                source={require('../assets/HCIcons/Icon_Waystation/Icon_TheWaystation.png')}
+                style={{ width: size * 4.8, height: size * 4.8, marginTop: 12 }}
+                resizeMode="contain"
+                accessibilityIgnoresInvertColors
+              />
+            ),
+          }}
+        />
+      </Tabs>
+    </View>
   );
 }
