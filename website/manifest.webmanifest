@@ -1,0 +1,18 @@
+{
+  "name": "The Homesteading Compass",
+  "short_name": "Homestead",
+  "description": "Homestead planning, farm records, Farm Stand, Post Box, and local Waystation tools.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f0e1",
+  "theme_color": "#4c7744",
+  "icons": [
+    {
+      "src": "/assets/logo-barn.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -3,84 +3,673 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Homesteading Compass</title>
+    <title>The Homesteading Compass</title>
     <meta
       name="description"
-      content="Homesteading Compass helps organize livestock, gardens, farm stand sales, supply runs, emergency plans, and local homestead community tools."
+      content="The Homesteading Compass helps organize livestock, gardens, farm stand sales, chores, recipes, weather alerts, and local homestead community tools."
     />
+    <meta property="og:site_name" content="The Homesteading Compass" />
+    <meta property="og:title" content="The Homesteading Compass" />
+    <meta
+      property="og:description"
+      content="A web preview of the The Homesteading Compass app for farm records, stand sales, weather alerts, and local community tools."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://thehomesteadingcompass.com/" />
+    <meta property="og:image" content="/assets/hc-logo.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="The Homesteading Compass" />
+    <meta
+      name="twitter:description"
+      content="Farm records, stand sales, weather alerts, and local homestead community tools."
+    />
+    <meta name="twitter:image" content="/assets/hc-logo.png" />
+    <meta name="theme-color" content="#4c7744" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo-barn.png" />
+    <link rel="apple-touch-icon" href="/assets/logo-barn.png" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="site-header">
       <nav class="nav" aria-label="Main navigation">
-        <a class="brand" href="/">Homesteading Compass</a>
+        <a class="brand" href="/">
+          <img src="/assets/logo-barn.png" alt="" />
+          <span>The Homesteading Compass</span>
+        </a>
         <div class="nav-links">
-          <a href="/privacy-policy/">Privacy</a>
-          <a href="/terms/">Terms</a>
+          <a href="#app">App Preview</a>
+          <a href="#waystation">Waystation</a>
+          <a href="#tiers">Tiers</a>
           <a href="/support/">Support</a>
-          <a href="/safety/">Safety</a>
+          <a href="/privacy-policy/">Privacy</a>
         </div>
+        <button
+          class="menu-toggle"
+          type="button"
+          id="featureMenuToggle"
+          aria-controls="featureMenu"
+          aria-expanded="false"
+        >
+          Menu
+        </button>
       </nav>
+      <div class="feature-menu" id="featureMenu" hidden>
+        <div class="feature-menu-inner">
+          <button type="button" data-menu-tab="almanac">Almanac</button>
+          <button type="button" data-menu-tab="alerts">Weather & Alerts</button>
+          <button type="button" data-menu-tab="farm-stand">Farm Stand</button>
+          <button type="button" data-menu-tab="post-box">Post Box</button>
+          <button type="button" data-menu-tab="log-book">Log Book</button>
+          <button type="button" data-menu-tab="recipe-book">Recipe Book</button>
+          <button type="button" data-menu-tab="porch-light">Porch Light Map</button>
+          <button type="button" data-menu-tab="trading-post">Trading Post</button>
+          <button type="button" data-menu-tab="front-porch">Front Porch</button>
+          <button type="button" data-menu-tab="account">Account</button>
+        </div>
+      </div>
     </header>
 
     <main>
-      <section class="hero">
-        <div>
-          <div class="eyebrow">Homestead records and planning</div>
-          <h1>One place to track the work of a busy homestead.</h1>
+      <section class="hero app-hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Homestead records, planning, and local community</div>
+          <h1>Welcome to<br />The Homesteading Compass</h1>
           <p class="lead">
-            Homesteading Compass helps keep animal records, garden notes, chores,
-            supply runs, farm stand inventory, emergency plans, and local
-            marketplace tools organized.
+            A web preview of the app experience: Almanac planning, Farm Alerts,
+            Farm Stand inventory, Post Box support, logs, and local Waystation
+            tools. This version saves demo changes in this browser only.
           </p>
           <div class="actions">
-            <a class="button" href="/privacy-policy/">Privacy Policy</a>
+            <a class="button" href="#app">Open App Preview</a>
             <a class="button secondary" href="/support/">Contact Support</a>
+            <button class="button secondary" type="button" id="installAppButton" hidden>Install App</button>
           </div>
         </div>
-        <aside class="feature-panel" aria-label="App feature summary">
-          <h2>Built for practical tracking</h2>
-          <ul>
-            <li>Livestock logs and animal profiles</li>
-            <li>Garden, chore, supply, and farm stand tools</li>
-            <li>Emergency planning for people, pets, and livestock</li>
-            <li>Trading Post, Porch Talk, and Porch Light map features</li>
-          </ul>
+        <aside class="app-panel" aria-label="The Homesteading Compass app preview">
+          <img class="hero-logo" src="/assets/hc-logo.png" alt="The Homesteading Compass logo" />
+          <div class="phone-card">
+            <button class="phone-card-row preview-tab-button" type="button" data-preview-tab="almanac">
+              <span>Almanac</span>
+              <strong>Today</strong>
+            </button>
+            <button class="phone-card-row preview-tab-button" type="button" data-preview-tab="alerts">
+              <span>Farm Alerts</span>
+              <strong>Filter</strong>
+            </button>
+            <button class="phone-card-row preview-tab-button" type="button" data-preview-tab="post-box">
+              <span>Post Box</span>
+              <strong>Open</strong>
+            </button>
+          </div>
         </aside>
       </section>
 
-      <section class="content">
-        <div class="grid">
-          <article class="card">
-            <h3>For Mobile</h3>
-            <p>
-              The Android app is designed for everyday homestead tracking from
-              the field, barn, garden, market table, or kitchen.
-            </p>
+      <section id="app" class="content app-shell" aria-label="Interactive app preview">
+        <div class="app-toolbar">
+          <div>
+            <div class="eyebrow">Interactive Website Preview</div>
+            <h2>Homestead Dashboard</h2>
+          </div>
+          <div class="toolbar-actions">
+            <button class="button compact secondary" type="button" id="appMenuButton">Open Feature Menu</button>
+            <div class="sync-pill">Local preview only</div>
+          </div>
+        </div>
+        <div class="status-toast" id="statusToast" role="status" aria-live="polite" hidden></div>
+
+        <div class="tab-bar" role="tablist" aria-label="Website preview sections">
+          <button class="tab-button active" type="button" data-tab="almanac">Almanac</button>
+          <button class="tab-button" type="button" data-tab="farm-stand">Farm Stand</button>
+          <button class="tab-button" type="button" data-tab="post-box">Post Box</button>
+          <button class="tab-button" type="button" data-tab="alerts">Farm Alerts</button>
+          <button class="tab-button" type="button" data-tab="log-book">Log Book</button>
+          <button class="tab-button" type="button" data-tab="recipe-book">Recipe Book</button>
+          <button class="tab-button" type="button" data-tab="porch-light">Porch Light Map</button>
+          <button class="tab-button" type="button" data-tab="trading-post">Trading Post</button>
+          <button class="tab-button" type="button" data-tab="front-porch">Front Porch</button>
+          <button class="tab-button" type="button" data-tab="account">Account</button>
+        </div>
+
+        <section class="tab-panel active" id="panel-almanac">
+          <div class="dashboard-grid">
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Today</div>
+                  <h3>Almanac</h3>
+                </div>
+                <button class="icon-check warning" type="button" id="setupToggle" aria-expanded="false" aria-controls="setupList">
+                  ✓
+                </button>
+              </div>
+              <p class="muted">Keep the day’s work, alerts, and reminders close at hand.</p>
+              <div class="setup-list" id="setupList" hidden>
+                <div class="setup-item done"><span>✓</span> Farm profile started</div>
+                <div class="setup-item warning"><span>!</span> Add Farm Stand location</div>
+                <div class="setup-item warning"><span>!</span> Add low-stock limits</div>
+                <div class="setup-item done"><span>✓</span> Post Box ready</div>
+              </div>
+            </article>
+
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">To Do</div>
+                  <h3>Chore List</h3>
+                </div>
+                <span class="count-pill" id="todoCount">0</span>
+              </div>
+              <form class="inline-form" id="todoForm">
+                <input id="todoInput" type="text" placeholder="Add a To Do item" />
+                <button class="button compact" type="submit">Add</button>
+              </form>
+              <div class="stack-list" id="todoList"></div>
+            </article>
+
+            <article class="tool-panel alert-summary">
+              <div class="eyebrow">Farm Alerts</div>
+              <h3>Watch List</h3>
+              <div class="mini-metric">
+                <span>Low inventory</span>
+                <strong id="lowInventoryCount">0</strong>
+              </div>
+              <div class="mini-metric">
+                <span>Open messages</span>
+                <strong id="openMessageCount">0</strong>
+              </div>
+              <button class="button secondary compact" type="button" data-jump-tab="alerts">Review Alerts</button>
+            </article>
+          </div>
+          <div class="almanac-layout">
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Calendar</div>
+                  <h3>Upcoming Almanac</h3>
+                </div>
+                <span class="count-pill" id="almanacCount">0</span>
+              </div>
+              <form class="inline-form almanac-form" id="almanacForm">
+                <input id="almanacTitle" type="text" placeholder="Reminder title" required />
+                <input id="almanacDate" type="date" required />
+                <select id="almanacSource">
+                  <option>Chore List</option>
+                  <option>Weather</option>
+                  <option>Animal Log</option>
+                  <option>Garden</option>
+                  <option>Pantry</option>
+                </select>
+                <button class="button compact" type="submit">Add</button>
+              </form>
+              <div class="calendar-list" id="almanacEvents"></div>
+            </article>
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Chores</div>
+                  <h3>Recurring Work</h3>
+                </div>
+                <span class="count-pill" id="choreCount">0</span>
+              </div>
+              <form class="inline-form chore-form" id="choreForm">
+                <input id="choreName" type="text" placeholder="Chore name" required />
+                <select id="choreFrequency">
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Monthly</option>
+                  <option>Seasonal</option>
+                </select>
+                <button class="button compact" type="submit">Add</button>
+              </form>
+              <div class="stack-list" id="choreList"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-farm-stand">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Farm Stand</div>
+              <h3>Stand Manager</h3>
+            </div>
+            <button class="button compact" type="button" id="addStandButton">Create New Stand</button>
+          </div>
+          <div class="stand-layout">
+            <div class="stand-cards" id="standCards"></div>
+            <article class="tool-panel stand-detail" id="standDetail"></article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-post-box">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Post Box</div>
+              <h3>Messages</h3>
+            </div>
+            <span class="unread-indicator" id="unreadIndicator" aria-label="Unread messages"></span>
+          </div>
+
+          <div class="message-tools">
+            <input id="messageSearch" type="search" placeholder="Search messages" />
+            <select id="messageCategory">
+              <option value="all">All categories</option>
+              <option>Farm Stand</option>
+              <option>Farm Alerts</option>
+              <option>Chore List</option>
+              <option>Almanac</option>
+              <option>Cattle Log</option>
+              <option>Porch Light Map</option>
+              <option>Support</option>
+            </select>
+            <select id="messageSort">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="unread">Unread first</option>
+            </select>
+          </div>
+
+          <div class="postbox-layout">
+            <form class="tool-panel message-compose" id="messageForm">
+              <h3>New Message</h3>
+              <label>
+                Category
+                <select id="composeCategory">
+                  <option>Support</option>
+                  <option>Farm Stand</option>
+                  <option>Farm Alerts</option>
+                  <option>Chore List</option>
+                  <option>Almanac</option>
+                  <option>Cattle Log</option>
+                  <option>Porch Light Map</option>
+                </select>
+              </label>
+              <label>
+                Subject
+                <input id="composeSubject" type="text" placeholder="Short subject" required />
+              </label>
+              <label>
+                Message
+                <textarea id="composeBody" rows="4" placeholder="What happened?" required></textarea>
+              </label>
+              <label>
+                Screenshot or photo
+                <input id="composePhoto" type="file" accept="image/*" />
+              </label>
+              <button class="button" type="submit">Send Demo Message</button>
+            </form>
+            <div class="message-list" id="messageList"></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-alerts">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Farm Alerts</div>
+              <h3>Filtered Alerts</h3>
+            </div>
+            <div class="filter-menu">
+              <button class="button compact secondary" type="button" id="filterToggle" aria-expanded="false">
+                Filter
+              </button>
+              <div class="filter-popover" id="filterPopover" hidden>
+                <label><input type="checkbox" value="Inventory" checked /> Inventory</label>
+                <label><input type="checkbox" value="Chores" checked /> Chores</label>
+                <label><input type="checkbox" value="Weather" checked /> Weather</label>
+                <label><input type="checkbox" value="Animals" checked /> Animals</label>
+                <label><input type="checkbox" value="Messages" checked /> Messages</label>
+                <button class="button compact" type="button" id="clearAlertFilters">Clear Filters</button>
+              </div>
+            </div>
+          </div>
+          <div class="weather-layout">
+            <article class="tool-panel weather-card">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Weather</div>
+                  <h3 id="weatherSummary">Local Forecast</h3>
+                </div>
+                <strong id="weatherTemp">--</strong>
+              </div>
+              <p class="muted" id="weatherDetails"></p>
+              <form class="inline-form weather-form" id="weatherForm">
+                <input id="weatherLocation" type="text" placeholder="Town, ST" />
+                <select id="weatherCondition">
+                  <option>Hot and humid</option>
+                  <option>Storm watch</option>
+                  <option>Frost watch</option>
+                  <option>Rain coming</option>
+                  <option>Clear and mild</option>
+                </select>
+                <button class="button compact" type="submit">Update</button>
+              </form>
+            </article>
+            <article class="tool-panel">
+              <div class="eyebrow">Alert Rules</div>
+              <h3>Watch Conditions</h3>
+              <div class="connection-list" id="weatherRules"></div>
+            </article>
+          </div>
+          <div class="alert-list" id="alertList"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-log-book">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Log Book</div>
+              <h3>Animals and Records</h3>
+            </div>
+            <select class="compact-select" id="animalSpeciesFilter">
+              <option value="all">All animals</option>
+              <option>Cattle</option>
+              <option>Goat</option>
+              <option>Chicken</option>
+              <option>Rabbit</option>
+              <option>Horse</option>
+              <option>Bee</option>
+              <option>Farm Dog</option>
+            </select>
+          </div>
+          <div class="logbook-layout">
+            <form class="tool-panel settings-form" id="animalForm">
+              <h3>Add Animal</h3>
+              <label>
+                Name
+                <input id="animalName" type="text" placeholder="Animal name" required />
+              </label>
+              <label>
+                Species
+                <select id="animalSpecies">
+                  <option>Cattle</option>
+                  <option>Goat</option>
+                  <option>Chicken</option>
+                  <option>Rabbit</option>
+                  <option>Horse</option>
+                  <option>Bee</option>
+                  <option>Farm Dog</option>
+                </select>
+              </label>
+              <label>
+                Tag or ID
+                <input id="animalTag" type="text" placeholder="Tag, tattoo, collar, hive" />
+              </label>
+              <label>
+                Quick note
+                <textarea id="animalNote" rows="3" placeholder="Health, breeding, feed, production, or care note"></textarea>
+              </label>
+              <button class="button" type="submit">Save Animal</button>
+            </form>
+            <div class="animal-board" id="animalBoard"></div>
+          </div>
+          <div class="record-area-grid" id="recordAreaGrid"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-recipe-book">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Recipe Book</div>
+              <h3>Kitchen and Preservation</h3>
+            </div>
+            <input class="compact-search" id="recipeSearch" type="search" placeholder="Search recipes" />
+          </div>
+          <div class="recipe-layout">
+            <form class="tool-panel settings-form" id="recipeForm">
+              <h3>Add Recipe</h3>
+              <label>
+                Title
+                <input id="recipeTitle" type="text" placeholder="Recipe name" required />
+              </label>
+              <label>
+                Type
+                <select id="recipeType">
+                  <option>Dinner</option>
+                  <option>Breakfast</option>
+                  <option>Baking</option>
+                  <option>Canning</option>
+                  <option>Fermenting</option>
+                  <option>Animal Treats</option>
+                </select>
+              </label>
+              <label>
+                Main ingredients
+                <input id="recipeIngredients" type="text" placeholder="eggs, tomatoes, basil" />
+              </label>
+              <label>
+                Notes
+                <textarea id="recipeNotes" rows="3" placeholder="Instructions, yield, pantry notes"></textarea>
+              </label>
+              <button class="button" type="submit">Save Recipe</button>
+            </form>
+            <div class="recipe-list" id="recipeList"></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-porch-light">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Porch Light Map</div>
+              <h3>Local Pins</h3>
+            </div>
+            <select class="compact-select" id="pinTypeFilter">
+              <option value="all">All pin types</option>
+              <option>Farm Stand</option>
+              <option>Swap</option>
+              <option>Event</option>
+              <option>Service</option>
+            </select>
+          </div>
+          <div class="map-preview-layout">
+            <div class="map-canvas-preview" aria-label="Porch Light Map preview">
+              <img src="/assets/icon-porch-light-map.png" alt="" />
+              <span class="map-dot dot-one"></span>
+              <span class="map-dot dot-two"></span>
+              <span class="map-dot dot-three"></span>
+            </div>
+            <div class="local-card-list" id="pinList"></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-trading-post">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Trading Post</div>
+              <h3>Local Listings</h3>
+            </div>
+            <input class="compact-search" id="listingSearch" type="search" placeholder="Search listings" />
+          </div>
+          <div class="market-grid" id="listingList"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-front-porch">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Front Porch</div>
+              <h3>Community Posts</h3>
+            </div>
+            <select class="compact-select" id="postTopicFilter">
+              <option value="all">All topics</option>
+              <option>Knowledge</option>
+              <option>Question</option>
+              <option>Event</option>
+              <option>Notice</option>
+            </select>
+          </div>
+          <div class="front-porch-layout">
+            <form class="tool-panel message-compose" id="frontPorchForm">
+              <h3>New Local Post</h3>
+              <label>
+                Topic
+                <select id="postTopic">
+                  <option>Question</option>
+                  <option>Knowledge</option>
+                  <option>Event</option>
+                  <option>Notice</option>
+                </select>
+              </label>
+              <label>
+                Title
+                <input id="postTitle" type="text" placeholder="Post title" required />
+              </label>
+              <label>
+                Details
+                <textarea id="postBody" rows="4" placeholder="Share a local note" required></textarea>
+              </label>
+              <button class="button" type="submit">Post Demo Note</button>
+            </form>
+            <div class="message-list" id="frontPorchPosts"></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-account">
+          <div class="settings-grid">
+            <article class="tool-panel">
+              <div class="eyebrow">Account</div>
+              <h3>Website Account Shell</h3>
+              <p class="muted">
+                This is ready for Supabase Auth later. For now it only stores
+                profile edits in this browser.
+              </p>
+              <form class="settings-form" id="profileForm">
+                <label>
+                  Display name
+                  <input id="profileName" type="text" />
+                </label>
+                <label>
+                  Home area
+                  <input id="profileArea" type="text" />
+                </label>
+                <label>
+                  Subscription tier
+                  <select id="profileTier">
+                    <option>Backyard</option>
+                    <option>Hobby Farm</option>
+                    <option>Homesteader</option>
+                  </select>
+                </label>
+                <button class="button" type="submit">Save Demo Profile</button>
+              </form>
+            </article>
+            <article class="tool-panel">
+              <div class="eyebrow">Cloud Connection Later</div>
+              <h3>Supabase Ready</h3>
+              <div class="connection-status" id="supabaseStatus" aria-live="polite"></div>
+              <div class="connection-list">
+                <div><strong>Auth</strong><span>Sign in, sign out, account state</span></div>
+                <div><strong>Database</strong><span>Farm Stand, Post Box, logs, pins</span></div>
+                <div><strong>Storage</strong><span>Support photos and listing images</span></div>
+                <div><strong>RLS</strong><span>Same owner-only rules as the app</span></div>
+              </div>
+            </article>
+            <article class="tool-panel">
+              <div class="eyebrow">Demo Data</div>
+              <h3>Testing Tools</h3>
+              <p class="muted">
+                Export a demo snapshot, import one back in, or reset the website
+                preview to the starting data.
+              </p>
+              <div class="data-actions">
+                <button class="button compact" type="button" id="exportDemoData">Export Demo Data</button>
+                <label class="import-control">
+                  Import Demo Data
+                  <input id="importDemoData" type="file" accept="application/json" />
+                </label>
+                <button class="button compact danger" type="button" id="resetDemoData">Reset Demo Data</button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section id="waystation" class="content split-section">
+        <div>
+          <div class="eyebrow">The Waystation</div>
+          <h2>Local tools for neighbors, sellers, and makers.</h2>
+          <p>
+            Waystation features help users find local stands, trade goods, share
+            knowledge, list services, and connect through safer in-app contact
+            options.
+          </p>
+          <ul class="check-list">
+            <li>Trading Post listings for local goods and livestock.</li>
+            <li>Outpost profiles for homestead services and public offerings.</li>
+            <li>Front Porch Hub for community knowledge and local posts.</li>
+            <li>Porch Light Map for nearby stands, swaps, events, and connections.</li>
+          </ul>
+        </div>
+        <div class="map-panel">
+          <img src="/assets/icon-porch-light-map.png" alt="" />
+          <h3>Porch Light Map</h3>
+          <p>Public map pins use the location details a user chooses to publish.</p>
+        </div>
+      </section>
+
+      <section id="tiers" class="content">
+        <div class="section-heading">
+          <div class="eyebrow">Subscription Tiers</div>
+          <h2>Start simple, unlock business tools as the homestead grows.</h2>
+        </div>
+        <div class="tier-grid">
+          <article class="tier-card">
+            <h3>Backyard</h3>
+            <p>Basic homestead planning for smaller setups.</p>
+            <ul>
+              <li>Core Almanac access</li>
+              <li>Basic To Do and recipe entries</li>
+              <li>Private records with starter limits</li>
+            </ul>
           </article>
-          <article class="card">
-            <h3>For Desktop</h3>
-            <p>
-              A desktop-friendly version is planned for larger tracking and
-              management tasks that are easier from a computer.
-            </p>
+          <article class="tier-card featured">
+            <h3>Hobby Farm</h3>
+            <p>For working homesteads that need more logs and local visibility.</p>
+            <ul>
+              <li>Trading Post and Outpost browsing</li>
+              <li>One Farm Stand setup</li>
+              <li>More log capacity and connected reminders</li>
+            </ul>
           </article>
-          <article class="card">
-            <h3>For Public Review</h3>
-            <p>
-              This site hosts the public privacy, support, terms, and safety
-              information required for app store review.
-            </p>
+          <article class="tier-card">
+            <h3>Homesteader</h3>
+            <p>For users who need broader records and publishing tools.</p>
+            <ul>
+              <li>Expanded Farm Stand tools</li>
+              <li>More public selling and publishing options</li>
+              <li>Higher limits for active records and workflows</li>
+            </ul>
           </article>
+        </div>
+      </section>
+
+      <section class="content resource-band">
+        <div>
+          <h2>Public Resources</h2>
+          <p>
+            These pages support app store review, user trust, marketplace
+            expectations, and community safety.
+          </p>
+        </div>
+        <div class="resource-links">
+          <a href="/privacy-policy/">Privacy Policy</a>
+          <a href="/terms/">Terms</a>
+          <a href="/community-guidelines/">Community Guidelines</a>
+          <a href="/marketplace-rules/">Marketplace Rules</a>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="inner">
-        <span>&copy; 2026 Homesteading Compass</span>
-        <span><a href="/privacy-policy/">Privacy Policy</a></span>
+        <span>&copy; 2026 The Homesteading Compass</span>
+        <span><a href="/support/">Support</a></span>
       </div>
     </footer>
+    <script src="/supabase-config.js" defer></script>
+    <script src="/app.js" defer></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
