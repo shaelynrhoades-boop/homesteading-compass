@@ -7,6 +7,6 @@
 */
 
 window.HC_SUPABASE_CONFIG = {
-  url: "",
-  anonKey: "",
+  url: "https://cxnlpwmpfqtluoutrssi.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4bmxwd21wZnF0bHVvdXRyc3NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTc2NjksImV4cCI6MjA4NDMzMzY2OX0.18FNZ21u_5EMeWr1apzMC7Vyr0ETBqz8EuRBevzC12I",
 };

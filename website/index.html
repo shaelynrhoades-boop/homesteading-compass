@@ -526,9 +526,24 @@
               <div class="eyebrow">Account</div>
               <h3>Website Account Shell</h3>
               <p class="muted">
-                This is ready for Supabase Auth later. For now it only stores
-                profile edits in this browser.
+                Sign in with Supabase to save this website preview to your
+                account. Local browser saving still works when signed out.
               </p>
+              <form class="settings-form" id="authForm">
+                <label>
+                  Email
+                  <input id="authEmail" type="email" autocomplete="email" />
+                </label>
+                <label>
+                  Password
+                  <input id="authPassword" type="password" autocomplete="current-password" />
+                </label>
+                <div class="button-row">
+                  <button class="button compact" type="submit" data-auth-action="signin">Sign In</button>
+                  <button class="button compact secondary" type="submit" data-auth-action="signup">Create Account</button>
+                  <button class="button compact secondary" type="button" id="signOutButton">Sign Out</button>
+                </div>
+              </form>
               <form class="settings-form" id="profileForm">
                 <label>
                   Display name
@@ -546,13 +561,17 @@
                     <option>Homesteader</option>
                   </select>
                 </label>
-                <button class="button" type="submit">Save Demo Profile</button>
+                <button class="button" type="submit">Save Profile</button>
               </form>
             </article>
             <article class="tool-panel">
-              <div class="eyebrow">Cloud Connection Later</div>
-              <h3>Supabase Ready</h3>
+              <div class="eyebrow">Cloud Connection</div>
+              <h3>Supabase Sync</h3>
               <div class="connection-status" id="supabaseStatus" aria-live="polite"></div>
+              <div class="data-actions">
+                <button class="button compact" type="button" id="loadCloudData">Load Cloud Data</button>
+                <button class="button compact secondary" type="button" id="saveCloudData">Save Cloud Data</button>
+              </div>
               <div class="connection-list">
                 <div><strong>Auth</strong><span>Sign in, sign out, account state</span></div>
                 <div><strong>Database</strong><span>Farm Stand, Post Box, logs, pins</span></div>
@@ -662,7 +681,9 @@
         <span><a href="/support/">Support</a></span>
       </div>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="/supabase-config.js" defer></script>
+    <script src="/supabase-adapter.js" defer></script>
     <script src="/app.js" defer></script>
     <script>
       if ("serviceWorker" in navigator) {

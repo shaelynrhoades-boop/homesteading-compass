@@ -1,5 +1,8 @@
 const storageKey = "hcWebsitePreviewState";
 let deferredInstallPrompt = null;
+let currentUser = null;
+let cloudSaveTimer = null;
+let syncingFromCloud = false;
 
 const defaultState = {
   selectedStandId: "stand-1",
@@ -228,6 +231,84 @@ function normalizeState(saved) {
 
 function saveState() {
   window.localStorage.setItem(storageKey, JSON.stringify(state));
+  scheduleCloudSave();
+}
+
+function getSupabaseAdapter() {
+  return window.HC_SUPABASE_ADAPTER || null;
+}
+
+function scheduleCloudSave() {
+  if (syncingFromCloud) return;
+  const adapter = getSupabaseAdapter();
+  if (!currentUser || !adapter?.saveWebsiteState) return;
+  window.clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = window.setTimeout(() => {
+    saveCloudState({ quiet: true });
+  }, 800);
+}
+
+async function refreshCurrentUser() {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.loadCurrentUser) {
+    currentUser = null;
+    return currentUser;
+  }
+  try {
+    currentUser = await adapter.loadCurrentUser();
+  } catch {
+    currentUser = null;
+  }
+  renderConnectionStatus();
+  return currentUser;
+}
+
+async function loadCloudState() {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.loadWebsiteState) {
+    notify("Supabase is not available on this website build.");
+    return;
+  }
+  try {
+    const user = currentUser || (await refreshCurrentUser());
+    if (!user) {
+      notify("Sign in before loading cloud data.");
+      return;
+    }
+    const cloudState = await adapter.loadWebsiteState();
+    if (!cloudState) {
+      notify("No cloud data saved for this account yet.");
+      return;
+    }
+    syncingFromCloud = true;
+    state = normalizeState(cloudState);
+    window.localStorage.setItem(storageKey, JSON.stringify(state));
+    renderAll();
+    notify("Cloud data loaded.");
+  } catch {
+    notify("Cloud data could not be loaded.");
+  } finally {
+    syncingFromCloud = false;
+  }
+}
+
+async function saveCloudState(options = {}) {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.saveWebsiteState) {
+    if (!options.quiet) notify("Supabase is not available on this website build.");
+    return;
+  }
+  try {
+    const user = currentUser || (await refreshCurrentUser());
+    if (!user) {
+      if (!options.quiet) notify("Sign in before saving cloud data.");
+      return;
+    }
+    await adapter.saveWebsiteState(state);
+    if (!options.quiet) notify("Cloud data saved.");
+  } catch {
+    if (!options.quiet) notify("Cloud data could not be saved.");
+  }
 }
 
 function notify(message) {
@@ -731,12 +812,17 @@ function renderProfile() {
 function renderConnectionStatus() {
   const status = $("#supabaseStatus");
   if (!status) return;
-  const config = window.HC_SUPABASE_CONFIG || {};
-  const configured = Boolean(config.url && config.anonKey);
-  status.classList.toggle("connected", configured);
-  status.innerHTML = configured
-    ? "<strong>Supabase config detected</strong><span>The public URL and anon key are present. Live reads/writes still need the adapter functions connected.</span>"
-    : "<strong>Demo mode</strong><span>This website is saving changes in this browser only. Supabase can be connected later from supabase-config.js.</span>";
+  const adapter = getSupabaseAdapter();
+  const configured = Boolean(adapter?.isSupabaseConfigured?.());
+  status.classList.toggle("connected", configured && Boolean(currentUser));
+  status.innerHTML =
+    configured && currentUser
+      ? `<strong>Signed in</strong><span>${e(currentUser.email || "Supabase account")} is syncing this preview through user_cloud_records.</span>`
+      : configured
+        ? "<strong>Supabase ready</strong><span>Sign in to load and save this preview with your account.</span>"
+        : "<strong>Demo mode</strong><span>This website is saving changes in this browser only. Supabase config or SDK is missing.</span>";
+  const pill = $(".sync-pill");
+  if (pill) pill.textContent = configured && currentUser ? "Supabase sync on" : "Local preview";
 }
 
 function renderAll() {
@@ -756,7 +842,7 @@ function renderAll() {
   renderConnectionStatus();
 }
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const target = event.target.closest("button");
   if (!target) return;
 
@@ -924,6 +1010,26 @@ document.addEventListener("click", (event) => {
     saveState();
     renderAll();
     notify("Demo data reset.");
+  }
+
+  if (target.id === "loadCloudData") {
+    loadCloudState();
+  }
+
+  if (target.id === "saveCloudData") {
+    saveCloudState();
+  }
+
+  if (target.id === "signOutButton") {
+    const adapter = getSupabaseAdapter();
+    try {
+      await adapter?.signOut?.();
+      currentUser = null;
+      renderConnectionStatus();
+      notify("Signed out.");
+    } catch {
+      notify("Sign out failed.");
+    }
   }
 });
 
@@ -1099,6 +1205,31 @@ document.addEventListener("submit", async (event) => {
     saveState();
     renderProfile();
   }
+
+  if (event.target.id === "authForm") {
+    const adapter = getSupabaseAdapter();
+    const email = $("#authEmail").value.trim();
+    const password = $("#authPassword").value;
+    const action = event.submitter?.dataset.authAction || "signin";
+    if (!email || !password) {
+      notify("Enter an email and password.");
+      return;
+    }
+    try {
+      if (action === "signup") {
+        await adapter?.signUpWithEmail?.(email, password);
+        notify("Account created. Check email if confirmation is required.");
+      } else {
+        await adapter?.signInWithEmail?.(email, password);
+        notify("Signed in.");
+      }
+      $("#authPassword").value = "";
+      await refreshCurrentUser();
+      if (currentUser) await loadCloudState();
+    } catch {
+      notify(action === "signup" ? "Account could not be created." : "Sign in failed.");
+    }
+  }
 });
 
 function fileToDataUrl(file) {
@@ -1158,4 +1289,9 @@ window.addEventListener("appinstalled", () => {
   if (button) button.hidden = true;
 });
 
-renderAll();
+async function boot() {
+  renderAll();
+  await refreshCurrentUser();
+}
+
+boot();

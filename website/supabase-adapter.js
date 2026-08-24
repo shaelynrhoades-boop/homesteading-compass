@@ -1,81 +1,100 @@
-/*
-  Supabase connection placeholder for the website.
+(() => {
+  const browserConfig = globalThis.HC_SUPABASE_CONFIG || {};
+  const supabaseConfig = {
+    url: browserConfig.url || "",
+    anonKey: browserConfig.anonKey || "",
+  };
+  const recordKey = "website_preview_state";
+  const sdk = globalThis.supabase;
+  const client =
+    supabaseConfig.url && supabaseConfig.anonKey && sdk?.createClient
+      ? sdk.createClient(supabaseConfig.url, supabaseConfig.anonKey, {
+          auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true,
+          },
+        })
+      : null;
 
-  The current homepage uses website/app.js and browser localStorage only. When
-  the website is ready to share accounts/data with the app, this file is the
-  intended boundary:
+  function isSupabaseConfigured() {
+    return Boolean(client);
+  }
 
-  - Auth: sign in, sign out, current user
-  - Database: support_messages, Farm Stand data, Porch Light pins, listings
-  - Storage: support-attachments and public listing/porch-light photos
+  async function loadCurrentUser() {
+    if (!client) return null;
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+    return user || null;
+  }
 
-  Do not put service-role keys in the website. The browser should only ever use
-  the public Supabase URL and anon key, protected by row level security.
-*/
+  async function getSession() {
+    if (!client) return null;
+    const {
+      data: { session },
+    } = await client.auth.getSession();
+    return session || null;
+  }
 
-const browserConfig = globalThis.HC_SUPABASE_CONFIG || {};
+  async function signInWithEmail(email, password) {
+    if (!client) throw new Error("Supabase is not configured for this website.");
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  }
 
-export const supabaseConfig = {
-  url: browserConfig.url || "",
-  anonKey: browserConfig.anonKey || "",
-};
+  async function signUpWithEmail(email, password) {
+    if (!client) throw new Error("Supabase is not configured for this website.");
+    const { data, error } = await client.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;
+  }
 
-export function isSupabaseConfigured() {
-  return Boolean(supabaseConfig.url && supabaseConfig.anonKey);
-}
+  async function signOut() {
+    if (!client) return;
+    const { error } = await client.auth.signOut();
+    if (error) throw error;
+  }
 
-export async function signInWithEmail() {
-  throw new Error("Supabase Auth is not connected to the website yet.");
-}
+  async function loadWebsiteState() {
+    if (!client) return null;
+    const user = await loadCurrentUser();
+    if (!user) return null;
+    const { data, error } = await client
+      .from("user_cloud_records")
+      .select("value")
+      .eq("user_id", user.id)
+      .eq("record_key", recordKey)
+      .maybeSingle();
+    if (error) throw error;
+    return typeof data?.value === "string" ? JSON.parse(data.value) : null;
+  }
 
-export async function loadCurrentUser() {
-  return null;
-}
+  async function saveWebsiteState(value) {
+    if (!client) return false;
+    const user = await loadCurrentUser();
+    if (!user) return false;
+    const { error } = await client.from("user_cloud_records").upsert({
+      user_id: user.id,
+      record_key: recordKey,
+      value: JSON.stringify(value),
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+    return true;
+  }
 
-export async function uploadSupportAttachment() {
-  throw new Error("Supabase Storage is not connected to the website yet.");
-}
-
-export async function createSupportMessage() {
-  throw new Error("Supabase database writes are not connected to the website yet.");
-}
-
-export async function loadAlmanacEntries() {
-  throw new Error("Supabase Almanac reads are not connected to the website yet.");
-}
-
-export async function saveAlmanacEntry() {
-  throw new Error("Supabase Almanac writes are not connected to the website yet.");
-}
-
-export async function loadChores() {
-  throw new Error("Supabase Chore List reads are not connected to the website yet.");
-}
-
-export async function saveChore() {
-  throw new Error("Supabase Chore List writes are not connected to the website yet.");
-}
-
-export async function loadWeatherSettings() {
-  throw new Error("Supabase Weather settings reads are not connected to the website yet.");
-}
-
-export async function saveWeatherSettings() {
-  throw new Error("Supabase Weather settings writes are not connected to the website yet.");
-}
-
-export async function loadAnimalRecords() {
-  throw new Error("Supabase animal Log Book reads are not connected to the website yet.");
-}
-
-export async function saveAnimalRecord() {
-  throw new Error("Supabase animal Log Book writes are not connected to the website yet.");
-}
-
-export async function loadRecipes() {
-  throw new Error("Supabase Recipe Book reads are not connected to the website yet.");
-}
-
-export async function saveRecipe() {
-  throw new Error("Supabase Recipe Book writes are not connected to the website yet.");
-}
+  globalThis.HC_SUPABASE_ADAPTER = {
+    client,
+    supabaseConfig,
+    isSupabaseConfigured,
+    getSession,
+    loadCurrentUser,
+    signInWithEmail,
+    signUpWithEmail,
+    signOut,
+    loadWebsiteState,
+    saveWebsiteState,
+  };
+})();
