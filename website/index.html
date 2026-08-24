@@ -73,12 +73,11 @@
     <main>
       <section class="hero app-hero">
         <div class="hero-copy">
-          <div class="eyebrow">Homestead records, planning, and local community</div>
-          <h1>Welcome to<br />The Homesteading Compass</h1>
+          <div class="eyebrow">The Homesteading Compass</div>
+          <h1>Homestead Dashboard</h1>
           <p class="lead">
-            A web preview of the app experience: Almanac planning, Farm Alerts,
-            Farm Stand inventory, Post Box support, logs, and local Waystation
-            tools. This version saves demo changes in this browser only.
+            Open a tool from the menu and work inside one organized preview.
+            Sign in from Account when you want Supabase sync.
           </p>
           <div class="actions">
             <a class="button" href="#app">Open App Preview</a>
@@ -108,11 +107,11 @@
       <section id="app" class="content app-shell" aria-label="Interactive app preview">
         <div class="app-toolbar">
           <div>
-            <div class="eyebrow">Interactive Website Preview</div>
-            <h2>Homestead Dashboard</h2>
+            <div class="eyebrow">Workspace</div>
+            <h2>Tools</h2>
           </div>
           <div class="toolbar-actions">
-            <button class="button compact secondary" type="button" id="appMenuButton">Open Feature Menu</button>
+            <button class="button compact secondary" type="button" id="appMenuButton">Menu</button>
             <div class="sync-pill">Local preview only</div>
           </div>
         </div>
@@ -120,12 +119,12 @@
 
         <div class="tab-bar" role="tablist" aria-label="Website preview sections">
           <button class="tab-button active" type="button" data-tab="almanac">Almanac</button>
+          <button class="tab-button" type="button" data-tab="alerts">Alerts</button>
           <button class="tab-button" type="button" data-tab="farm-stand">Farm Stand</button>
           <button class="tab-button" type="button" data-tab="post-box">Post Box</button>
-          <button class="tab-button" type="button" data-tab="alerts">Farm Alerts</button>
           <button class="tab-button" type="button" data-tab="log-book">Log Book</button>
-          <button class="tab-button" type="button" data-tab="recipe-book">Recipe Book</button>
-          <button class="tab-button" type="button" data-tab="porch-light">Porch Light Map</button>
+          <button class="tab-button" type="button" data-tab="recipe-book">Recipes</button>
+          <button class="tab-button" type="button" data-tab="porch-light">Map</button>
           <button class="tab-button" type="button" data-tab="trading-post">Trading Post</button>
           <button class="tab-button" type="button" data-tab="front-porch">Front Porch</button>
           <button class="tab-button" type="button" data-tab="account">Account</button>
@@ -524,7 +523,7 @@
           <div class="settings-grid">
             <article class="tool-panel">
               <div class="eyebrow">Account</div>
-              <h3>Website Account Shell</h3>
+              <h3>Account & Sync</h3>
               <p class="muted">
                 Sign in with Supabase to save this website preview to your
                 account. Local browser saving still works when signed out.
@@ -571,12 +570,6 @@
               <div class="data-actions">
                 <button class="button compact" type="button" id="loadCloudData">Load Cloud Data</button>
                 <button class="button compact secondary" type="button" id="saveCloudData">Save Cloud Data</button>
-              </div>
-              <div class="connection-list">
-                <div><strong>Auth</strong><span>Sign in, sign out, account state</span></div>
-                <div><strong>Database</strong><span>Farm Stand, Post Box, logs, pins</span></div>
-                <div><strong>Storage</strong><span>Support photos and listing images</span></div>
-                <div><strong>RLS</strong><span>Same owner-only rules as the app</span></div>
               </div>
             </article>
             <article class="tool-panel">
