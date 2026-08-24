@@ -72,33 +72,35 @@ label {
   top: 0;
   z-index: 10;
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
 }
 
 .nav {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 14px 20px;
+  min-height: 54px;
+  padding: 8px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 14px;
 }
 
 .brand {
   color: var(--ink);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-height: 38px;
 }
 
 .brand img {
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 
@@ -127,8 +129,8 @@ label {
   border-radius: 8px;
   background: var(--green);
   color: #ffffff;
-  min-height: 40px;
-  padding: 8px 13px;
+  min-height: 34px;
+  padding: 6px 12px;
   font-weight: 700;
 }
 
