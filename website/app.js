@@ -51,9 +51,72 @@ const defaultState = {
     },
   ],
   workshopProjects: [
-    { id: "project-1", title: "Goat Shelter Refresh", status: "Idea" },
-    { id: "project-2", title: "Butcher Workstation", status: "Plan" },
-    { id: "project-3", title: "Farm Stand Cooler Shelf", status: "Plan" },
+    {
+      id: "project-1",
+      title: "Goat Shelter Refresh",
+      status: "Idea",
+      category: "Livestock",
+      supplies: [
+        { item: "Cattle panel", quantity: "2", total: "$58", detail: "$29 each at farm store. Check gate width first." },
+        { item: "Roof screws", quantity: "1 box", total: "$14", detail: "Use washer-head screws for metal panels." },
+      ],
+    },
+    {
+      id: "project-2",
+      title: "Butcher Workstation",
+      status: "Plan",
+      category: "Harvest",
+      supplies: [
+        { item: "Stainless table", quantity: "1", total: "$120", detail: "Used restaurant prep table is fine if surface is clean." },
+      ],
+    },
+    {
+      id: "project-3",
+      title: "Farm Stand Cooler Shelf",
+      status: "Plan",
+      category: "Farm Stand",
+      supplies: [
+        { item: "Shelf board", quantity: "2", total: "$24", detail: "Seal edges before installing near cooler condensation." },
+      ],
+    },
+  ],
+  fieldGuideEntries: [
+    {
+      id: "guide-1",
+      section: "Barnyard",
+      title: "Goat Shelter",
+      sentence: "A dry sleeping area with wind protection matters more than a fully enclosed warm room.",
+      path: "Livestock > Goats > Shelter",
+    },
+    {
+      id: "guide-2",
+      section: "Garden",
+      title: "Fall Brassicas",
+      sentence: "Start brassicas early enough that they size up before short daylight slows growth.",
+      path: "Garden > Fall Planting > Brassicas",
+    },
+    {
+      id: "guide-3",
+      section: "Pantry",
+      title: "Pantry Rotation",
+      sentence: "Keep the oldest jars at the front and write the month and year where it can be seen quickly.",
+      path: "Pantry > Canning > Rotation",
+    },
+    {
+      id: "guide-4",
+      section: "Workshop",
+      title: "Project Supplies",
+      sentence: "Track quantity and total price first, then expand the row only when you need source or per-item notes.",
+      path: "Workshop > Project Planning > Supplies",
+    },
+  ],
+  notificationPrefs: [
+    { id: "new-recipe", title: "New Recipe", detail: "Breakfast, dinner, soups, baking, canning, and other recipe categories.", enabled: true },
+    { id: "new-trading-post", title: "New Trading Post Listing", detail: "Livestock, food, farm supplies, equipment, and radius filters.", enabled: true },
+    { id: "new-farm-stand", title: "New Farm Stand", detail: "Nearby stands with location radius.", enabled: false },
+    { id: "front-porch-events", title: "Front Porch Events", detail: "Local events with radius options.", enabled: false },
+    { id: "porch-light-map", title: "Porch Light Turned On", detail: "Nearby homestead, Farm Stand, Trading Post, and Outpost pins.", enabled: true },
+    { id: "weather-time", title: "Weather and Time", detail: "Morning weather checks, freeze alerts, heat reminders, and chore timing.", enabled: true },
   ],
   emergencyPlan: {
     propertyName: "Sunny Ridge Homestead",
@@ -334,6 +397,12 @@ function normalizeState(saved) {
     workshopProjects: Array.isArray(saved.workshopProjects)
       ? saved.workshopProjects
       : clone(defaultState.workshopProjects),
+    fieldGuideEntries: Array.isArray(saved.fieldGuideEntries)
+      ? saved.fieldGuideEntries
+      : clone(defaultState.fieldGuideEntries),
+    notificationPrefs: Array.isArray(saved.notificationPrefs)
+      ? saved.notificationPrefs
+      : clone(defaultState.notificationPrefs),
     emergencyPlan: {
       ...clone(defaultState.emergencyPlan),
       ...(saved.emergencyPlan || {}),
@@ -1232,6 +1301,100 @@ function renderAnimals() {
     .join("");
 }
 
+function renderFieldGuide() {
+  const list = $("#fieldGuideList");
+  if (!list) return;
+  const filter = $("#fieldGuideFilter")?.value || "all";
+  const entries =
+    filter === "all"
+      ? state.fieldGuideEntries
+      : state.fieldGuideEntries.filter((entry) => entry.section === filter);
+  list.innerHTML = entries
+    .map(
+      (entry) => `
+        <article class="guide-card">
+          <div class="message-meta">
+            <span>${e(entry.section)}</span>
+            <span>${e(entry.path)}</span>
+          </div>
+          <h3>${e(entry.title)}</h3>
+          <p>${e(entry.sentence)}</p>
+          <button class="button compact secondary" type="button" data-guide-note="${entry.id}">Use This Sentence</button>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderWorkshop() {
+  const ideas = $("#workshopIdeas");
+  const plans = $("#workshopPlans");
+  const ideaCount = $("#workshopIdeaCount");
+  const planCount = $("#workshopPlanCount");
+  if (!ideas || !plans) return;
+  const ideaProjects = state.workshopProjects.filter((project) => project.status !== "Plan");
+  const planProjects = state.workshopProjects.filter((project) => project.status === "Plan");
+  if (ideaCount) ideaCount.textContent = String(ideaProjects.length);
+  if (planCount) planCount.textContent = String(planProjects.length);
+  const renderProject = (project) => `
+    <article class="workshop-project">
+      <div class="message-meta">
+        <span>${e(project.category || "Workshop")}</span>
+        <span>${e(project.status)}</span>
+      </div>
+      <h3>${e(project.title)}</h3>
+      <details>
+        <summary>Supplies</summary>
+        <div class="supply-list">
+          ${(project.supplies || [])
+            .map(
+              (supply) => `
+                <details class="supply-row">
+                  <summary>
+                    <strong>${e(supply.item)}</strong>
+                    <span>${e(supply.quantity)} · ${e(supply.total)}</span>
+                  </summary>
+                  <p>${e(supply.detail || "No extra details yet.")}</p>
+                </details>
+              `,
+            )
+            .join("")}
+        </div>
+      </details>
+      ${
+        project.status !== "Plan"
+          ? `<button class="button compact secondary" type="button" data-finish-project="${project.id}">Finished</button>`
+          : `<button class="button compact secondary" type="button" data-copy-project="${project.id}">Duplicate Plan</button>`
+      }
+    </article>
+  `;
+  ideas.innerHTML = ideaProjects.map(renderProject).join("");
+  plans.innerHTML = planProjects.map(renderProject).join("");
+}
+
+function renderNotifications() {
+  const list = $("#notificationList");
+  const count = $("#notificationCount");
+  if (!list) return;
+  const enabled = state.notificationPrefs.filter((pref) => pref.enabled).length;
+  if (count) count.textContent = `${enabled} on`;
+  list.innerHTML = state.notificationPrefs
+    .map(
+      (pref) => `
+        <article class="notification-card">
+          <div>
+            <strong>${e(pref.title)}</strong>
+            <span>${e(pref.detail)}</span>
+          </div>
+          <button class="toggle-button ${pref.enabled ? "on" : ""}" type="button" data-toggle-notification="${pref.id}" aria-pressed="${pref.enabled}">
+            ${pref.enabled ? "On" : "Off"}
+          </button>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderRecipes() {
   const list = $("#recipeList");
   if (!list) return;
@@ -1408,6 +1571,9 @@ function renderAll() {
   renderOutpost();
   renderPosts();
   renderAnimals();
+  renderFieldGuide();
+  renderWorkshop();
+  renderNotifications();
   renderRecipes();
   renderNotebook();
   renderProfile();
@@ -1743,6 +1909,81 @@ document.addEventListener("click", async (event) => {
     renderNotebook();
     if (select) select.value = project.id;
     notify("Workshop project created and linked.");
+  }
+
+  if (target.dataset.guideNote) {
+    const entry = state.fieldGuideEntries.find((item) => item.id === target.dataset.guideNote);
+    if (!entry) return;
+    $("#fieldGuidePath").value = entry.path;
+    $("#fieldGuideSelection").value = entry.sentence;
+    notify("Sentence ready to save to Notebook.");
+  }
+
+  if (target.id === "saveFieldGuideNote") {
+    const body = $("#fieldGuideSelection")?.value.trim();
+    if (!body) {
+      notify("Choose or type the sentence you want to save.");
+      return;
+    }
+    state.notebookEntries.unshift({
+      id: `notebook-${Date.now()}`,
+      title: "Homestead Goals",
+      path: $("#fieldGuidePath")?.value.trim() || "Field Guide",
+      body,
+      projectId: "",
+      source: "Field Guide",
+    });
+    $("#fieldGuideSelection").value = "";
+    saveState();
+    renderAll();
+    notify("Field Guide note saved to Notebook.");
+  }
+
+  if (target.id === "addWorkshopProject") {
+    const title = window.prompt("Project title", "New Workshop Project");
+    if (!title?.trim()) return;
+    state.workshopProjects.unshift({
+      id: `project-${Date.now()}`,
+      title: title.trim(),
+      status: "Idea",
+      category: "Workshop",
+      supplies: [],
+    });
+    saveState();
+    renderAll();
+    notify("Workshop project created.");
+  }
+
+  if (target.dataset.finishProject) {
+    state.workshopProjects = state.workshopProjects.map((project) =>
+      project.id === target.dataset.finishProject ? { ...project, status: "Plan" } : project,
+    );
+    saveState();
+    renderWorkshop();
+    notify("Project moved to Plans.");
+  }
+
+  if (target.dataset.copyProject) {
+    const project = state.workshopProjects.find((item) => item.id === target.dataset.copyProject);
+    if (!project) return;
+    state.workshopProjects.unshift({
+      ...project,
+      id: `project-${Date.now()}`,
+      title: `${project.title} Copy`,
+      status: "Idea",
+    });
+    saveState();
+    renderWorkshop();
+    renderNotebook();
+    notify("Workshop plan duplicated as an idea.");
+  }
+
+  if (target.dataset.toggleNotification) {
+    state.notificationPrefs = state.notificationPrefs.map((pref) =>
+      pref.id === target.dataset.toggleNotification ? { ...pref, enabled: !pref.enabled } : pref,
+    );
+    saveState();
+    renderNotifications();
   }
 
   if (target.dataset.printNotebook) {
@@ -2215,6 +2456,7 @@ document.addEventListener("change", (event) => {
   if (event.target.id === "messageCategory" || event.target.id === "messageSort") renderMessages();
   if (event.target.id === "pinTypeFilter") renderPins();
   if (event.target.id === "postTopicFilter") renderPosts();
+  if (event.target.id === "fieldGuideFilter") renderFieldGuide();
   if (event.target.id === "animalSpeciesFilter") {
     renderAnimals();
     renderNotebook();

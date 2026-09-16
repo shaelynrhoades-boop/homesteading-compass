@@ -1296,11 +1296,96 @@ p {
 
 .map-preview-layout,
 .front-porch-layout,
-.settings-grid {
+.settings-grid,
+.guide-layout,
+.workshop-layout {
   display: grid;
   grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
   gap: 14px;
   align-items: start;
+}
+
+.guide-card-list,
+.notification-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.guide-card,
+.workshop-project,
+.notification-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.guide-card h3,
+.workshop-project h3 {
+  margin-top: 8px;
+}
+
+.workshop-project details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--cream);
+  margin: 10px 0;
+  padding: 10px 12px;
+}
+
+.workshop-project summary,
+.supply-row summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.supply-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.supply-row summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.supply-row p {
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+.notification-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 74px;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-card strong,
+.notification-card span {
+  display: block;
+}
+
+.notification-card span {
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.toggle-button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--brown);
+  min-height: 34px;
+  font-weight: 900;
+}
+
+.toggle-button.on {
+  background: var(--green);
+  border-color: var(--green);
+  color: #ffffff;
 }
 
 .map-canvas-preview {
@@ -1679,6 +1764,8 @@ p {
   .map-preview-layout,
   .front-porch-layout,
   .settings-grid,
+  .guide-layout,
+  .workshop-layout,
   .outpost-layout,
   .almanac-layout,
   .weather-layout,

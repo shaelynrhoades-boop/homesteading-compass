@@ -62,8 +62,11 @@
           <button type="button" data-menu-tab="emergency-plan">Emergency Plan</button>
           <button type="button" data-menu-tab="post-box">Post Box</button>
           <button type="button" data-menu-tab="log-book">Log Book</button>
+          <button type="button" data-menu-tab="field-guide">Field Guide</button>
+          <button type="button" data-menu-tab="workshop">Workshop</button>
           <button type="button" data-menu-tab="recipe-book">Recipe Book</button>
           <button type="button" data-menu-tab="notebook">Notebook & Contacts</button>
+          <button type="button" data-menu-tab="notifications">Notifications</button>
           <button type="button" data-menu-tab="porch-light">Porch Light Map</button>
           <button type="button" data-menu-tab="trading-post">Trading Post</button>
           <button type="button" data-menu-tab="outpost">Outpost</button>
@@ -128,8 +131,11 @@
           <button class="tab-button" type="button" data-tab="emergency-plan">Emergency</button>
           <button class="tab-button" type="button" data-tab="post-box">Post Box</button>
           <button class="tab-button" type="button" data-tab="log-book">Log Book</button>
+          <button class="tab-button" type="button" data-tab="field-guide">Field Guide</button>
+          <button class="tab-button" type="button" data-tab="workshop">Workshop</button>
           <button class="tab-button" type="button" data-tab="recipe-book">Recipes</button>
           <button class="tab-button" type="button" data-tab="notebook">Notebook</button>
+          <button class="tab-button" type="button" data-tab="notifications">Notifications</button>
           <button class="tab-button" type="button" data-tab="porch-light">Map</button>
           <button class="tab-button" type="button" data-tab="trading-post">Trading Post</button>
           <button class="tab-button" type="button" data-tab="outpost">Outpost</button>
@@ -561,6 +567,74 @@
           <div class="record-area-grid" id="recordAreaGrid"></div>
         </section>
 
+        <section class="tab-panel" id="panel-field-guide">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Field Guide</div>
+              <h3>Save Useful Sentences</h3>
+            </div>
+            <select class="compact-select" id="fieldGuideFilter">
+              <option value="all">All sections</option>
+              <option>Barnyard</option>
+              <option>Garden</option>
+              <option>Pantry</option>
+              <option>Workshop</option>
+            </select>
+          </div>
+          <div class="guide-layout">
+            <article class="tool-panel">
+              <div class="eyebrow">Transfer</div>
+              <h3>Save to Notebook</h3>
+              <p class="muted">
+                The app lets users save only the line they need and choose the
+                notebook path where it belongs.
+              </p>
+              <label>
+                Notebook path
+                <input id="fieldGuidePath" type="text" placeholder="Livestock > Goats > Shelter" />
+              </label>
+              <label>
+                Selected sentence
+                <textarea id="fieldGuideSelection" rows="4" placeholder="Click a guide note or paste the exact sentence to keep"></textarea>
+              </label>
+              <button class="button" type="button" id="saveFieldGuideNote">Save to Notebook</button>
+            </article>
+            <div class="guide-card-list" id="fieldGuideList"></div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-workshop">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Workshop</div>
+              <h3>Ideas and Plans</h3>
+            </div>
+            <button class="button compact" type="button" id="addWorkshopProject">Create Project</button>
+          </div>
+          <div class="workshop-layout">
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Ideas</div>
+                  <h3>Started Projects</h3>
+                </div>
+                <span class="count-pill" id="workshopIdeaCount">0</span>
+              </div>
+              <div class="stack-list" id="workshopIdeas"></div>
+            </article>
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Plans</div>
+                  <h3>Finished References</h3>
+                </div>
+                <span class="count-pill" id="workshopPlanCount">0</span>
+              </div>
+              <div class="stack-list" id="workshopPlans"></div>
+            </article>
+          </div>
+        </section>
+
         <section class="tab-panel" id="panel-notebook">
           <div class="app-toolbar compact-toolbar">
             <div>
@@ -637,6 +711,17 @@
             </article>
           </div>
           <div class="notebook-list" id="notebookList"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-notifications">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Notifications</div>
+              <h3>Menu Preferences</h3>
+            </div>
+            <span class="count-pill" id="notificationCount">0 on</span>
+          </div>
+          <div class="notification-grid" id="notificationList"></div>
         </section>
 
         <section class="tab-panel" id="panel-recipe-book">
