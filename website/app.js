@@ -5,6 +5,7 @@ let cloudSaveTimer = null;
 let appRecordSaveTimer = null;
 let profileContactSaveTimer = null;
 let operationsSaveTimer = null;
+let logBookSaveTimer = null;
 let syncingFromCloud = false;
 let appRecordSyncEnabled = false;
 
@@ -461,6 +462,7 @@ function saveState() {
   scheduleCentralAppDataSave();
   scheduleProfileContactSave();
   scheduleOperationsSave();
+  scheduleLogBookSave();
 }
 
 function getSupabaseAdapter() {
@@ -505,6 +507,16 @@ function scheduleOperationsSave() {
   operationsSaveTimer = window.setTimeout(() => {
     saveOperationalAppData({ quiet: true });
   }, 2000);
+}
+
+function scheduleLogBookSave() {
+  if (syncingFromCloud || !appRecordSyncEnabled) return;
+  const adapter = getSupabaseAdapter();
+  if (!currentUser || !adapter?.saveScopedRecord) return;
+  window.clearTimeout(logBookSaveTimer);
+  logBookSaveTimer = window.setTimeout(() => {
+    saveLogBookAppData({ quiet: true });
+  }, 2400);
 }
 
 async function refreshCurrentUser() {
@@ -1147,6 +1159,132 @@ async function saveOperationalAppData(options = {}) {
     return true;
   } catch {
     if (!options.quiet) notify("Section 3 operational records could not be saved.");
+    return false;
+  }
+}
+
+function websiteAnimalNotesToApp(animal) {
+  return asArray(animal.notes).map((note) => ({
+    id: String(note.id || `${animal.id}-note-${Date.now()}`),
+    type: firstText(note.type, "General"),
+    recordType: firstText(note.type, "General"),
+    body: firstText(note.body),
+    details: firstText(note.body),
+    notes: firstText(note.body),
+    date: firstText(note.date, new Date().toISOString().slice(0, 10)).slice(0, 10),
+    createdAt: firstText(note.date, new Date().toISOString()),
+  }));
+}
+
+function websiteAnimalToLivestockLog(animal) {
+  const notes = websiteAnimalNotesToApp(animal);
+  return {
+    id: String(animal.id),
+    animalId: String(animal.id),
+    animalName: firstText(animal.name, "Unnamed animal"),
+    name: firstText(animal.name, "Unnamed animal"),
+    species: firstText(animal.species, "Animal"),
+    animalType: firstText(animal.species, "Animal"),
+    tagNumber: firstText(animal.tag),
+    tag: firstText(animal.tag),
+    status: firstText(animal.status, "Active"),
+    photo: firstText(animal.photo),
+    photos: animal.photo ? [animal.photo] : [],
+    records: notes,
+    notes,
+    sales: asArray(animal.sales),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function websiteAnimalToAnimalRecord(animal) {
+  return {
+    ...websiteAnimalToLivestockLog(animal),
+    title: firstText(animal.name, "Unnamed animal"),
+    type: firstText(animal.species, "Animal"),
+  };
+}
+
+function websiteAnimalToHorseProfile(animal) {
+  return {
+    id: String(animal.id),
+    name: firstText(animal.name, "Unnamed horse"),
+    registeredName: firstText(animal.name, "Unnamed horse"),
+    callName: firstText(animal.name, "Unnamed horse"),
+    status: firstText(animal.status, "Active"),
+    tag: firstText(animal.tag),
+    registrationNumber: firstText(animal.tag),
+    photo: firstText(animal.photo),
+    photoUri: firstText(animal.photo),
+    notes: websiteAnimalNotesToApp(animal),
+    records: websiteAnimalNotesToApp(animal),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildLivestockLogPayload(existing = {}) {
+  return {
+    ...existing,
+    livestockLogs: mergePreservingExisting(
+      existing.livestockLogs,
+      state.animals.map(websiteAnimalToLivestockLog),
+    ),
+  };
+}
+
+function buildAnimalLogsPayload(existing = {}) {
+  return {
+    ...existing,
+    records: mergePreservingExisting(existing.records, state.animals.map(websiteAnimalToAnimalRecord)),
+  };
+}
+
+function buildHorseLogPayload(existing = {}) {
+  const horses = state.animals
+    .filter((animal) => /horse/i.test(animal.species || ""))
+    .map(websiteAnimalToHorseProfile);
+  return {
+    ...existing,
+    horses: mergePreservingExisting(existing.horses, horses),
+  };
+}
+
+async function saveLogBookAppData(options = {}) {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.loadScopedRecord || !adapter?.saveScopedRecord) {
+    if (!options.quiet) notify("Supabase Log Book saving is not available in this website build.");
+    return false;
+  }
+  try {
+    const user = currentUser || (await refreshCurrentUser());
+    if (!user) {
+      if (!options.quiet) notify("Sign in before saving Log Book app records.");
+      return false;
+    }
+    const [existingLivestock, existingAnimalLogs, existingHorseLog] = await Promise.all([
+      adapter.loadScopedRecord("homestead:log-book"),
+      adapter.loadScopedRecord("homestead:animal-logs"),
+      adapter.loadScopedRecord("homestead:horse-log"),
+    ]);
+    await Promise.all([
+      adapter.saveScopedRecord(
+        "homestead:log-book",
+        buildLivestockLogPayload(existingLivestock && typeof existingLivestock === "object" ? existingLivestock : {}),
+      ),
+      adapter.saveScopedRecord(
+        "homestead:animal-logs",
+        buildAnimalLogsPayload(existingAnimalLogs && typeof existingAnimalLogs === "object" ? existingAnimalLogs : {}),
+      ),
+      adapter.saveScopedRecord(
+        "homestead:horse-log",
+        buildHorseLogPayload(existingHorseLog && typeof existingHorseLog === "object" ? existingHorseLog : {}),
+      ),
+    ]);
+    appRecordSyncEnabled = true;
+    if (!options.quiet) notify("Section 4 Log Book records saved.");
+    return true;
+  } catch {
+    if (!options.quiet) notify("Section 4 Log Book records could not be saved.");
     return false;
   }
 }
@@ -2986,6 +3124,10 @@ document.addEventListener("click", async (event) => {
 
   if (target.id === "saveOperationalAppData") {
     saveOperationalAppData();
+  }
+
+  if (target.id === "saveLogBookAppData") {
+    saveLogBookAppData();
   }
 
   if (target.id === "saveCloudData") {
