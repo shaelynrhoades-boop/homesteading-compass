@@ -544,6 +544,42 @@ p {
   padding: 10px 12px;
 }
 
+.record-sync-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.record-sync-list li {
+  align-items: center;
+  background: #fffdfa;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+}
+
+.record-sync-list li.synced {
+  border-color: rgba(67, 121, 82, 0.35);
+  background: #edf3e7;
+}
+
+.record-sync-list span {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.record-sync-list em {
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+  text-align: right;
+}
+
 .app-shell {
   background: transparent;
   border-top: 0;
@@ -1367,6 +1403,40 @@ p {
   margin-bottom: 0;
 }
 
+.desktop-record-panel {
+  margin-top: 14px;
+}
+
+.record-workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.record-workspace-grid > div {
+  background: #fffdfa;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  padding: 12px;
+}
+
+.record-workspace-grid strong {
+  color: var(--green);
+}
+
+.record-workspace-grid span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.desktop-note-form {
+  margin-top: 12px;
+}
+
 .compact-select,
 .compact-search {
   max-width: 260px;
@@ -1859,6 +1929,7 @@ p {
   .app-feature-grid,
   .market-grid,
   .record-area-grid,
+  .record-workspace-grid,
   .emergency-grid,
   .feature-menu-inner {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1907,6 +1978,7 @@ p {
   .app-feature-grid,
   .market-grid,
   .record-area-grid,
+  .record-workspace-grid,
   .emergency-grid {
     grid-template-columns: 1fr;
   }

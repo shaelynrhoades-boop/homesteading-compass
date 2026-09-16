@@ -4,6 +4,21 @@ let currentUser = null;
 let cloudSaveTimer = null;
 let syncingFromCloud = false;
 
+const appRecordLabels = {
+  "homestead:data": "Recipes, Notebook, Almanac, Trading Post, Outpost",
+  "homestead:recipe-book:recipes": "Recipe Book backup",
+  "homestead:trading-listings": "Trading Post backup",
+  "homestead:log-book": "Livestock Log Book",
+  "homestead:animal-logs": "Animal records",
+  "homestead:horse-log": "Horse Log",
+  "homestead:workshop-log": "Workshop Log",
+  "homestead:chore-list": "Chores and To-Dos",
+  "draft:farm-stand": "Farm Stand",
+  "homestead:emergency:contacts": "Shared Contacts",
+  "homestead:profile": "Homestead Profile",
+  "waystation:notification-preferences": "Notifications",
+};
+
 const defaultState = {
   selectedStandId: "stand-1",
   profile: {
@@ -516,6 +531,284 @@ async function saveCloudState(options = {}) {
   } catch {
     if (!options.quiet) notify("Cloud data could not be saved.");
   }
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function mergeById(existing, incoming) {
+  const merged = new Map();
+  [...asArray(existing), ...asArray(incoming)].forEach((item) => {
+    if (!item || typeof item !== "object") return;
+    const id = item.id || item.recordId || `${item.title || item.name || "item"}-${merged.size}`;
+    merged.set(String(id), { ...item, id: String(id) });
+  });
+  return [...merged.values()];
+}
+
+function firstText(...values) {
+  return values.find((value) => typeof value === "string" && value.trim())?.trim() || "";
+}
+
+function mapRecipe(recipe) {
+  const ingredients = Array.isArray(recipe.ingredients)
+    ? recipe.ingredients
+        .map((item) => [item.quantity, item.unit, item.name || item.item].filter(Boolean).join(" "))
+        .filter(Boolean)
+        .join(", ")
+    : recipe.ingredients;
+  const type = Array.isArray(recipe.mealTypes)
+    ? recipe.mealTypes.join(", ")
+    : firstText(recipe.type, recipe.category, recipe.mealType, recipe.section, "Recipe");
+  return {
+    id: String(recipe.id || `recipe-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    title: firstText(recipe.title, recipe.name, "Untitled Recipe"),
+    type,
+    ingredients: firstText(ingredients, recipe.ingredientText, recipe.description),
+    notes: firstText(recipe.notes, recipe.instructions, recipe.description, recipe.body),
+    lastCooked: recipe.lastCooked || recipe.lastCookedDate || "",
+    source: recipe.source || "Your Recipe",
+    published: Boolean(recipe.published || recipe.isPublic),
+  };
+}
+
+function mapTradingListing(listing) {
+  return {
+    id: String(listing.id || `listing-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    category: firstText(listing.category, listing.type, "Trading Post"),
+    title: firstText(listing.title, listing.name, listing.itemName, "Untitled listing"),
+    location: firstText(listing.location, listing.area, listing.pickupLocation, state.profile.area),
+    price: firstText(listing.price, listing.priceLabel, listing.amount, "Contact seller"),
+    detail: firstText(listing.detail, listing.description, listing.notes),
+    saved: Boolean(listing.saved),
+    seller: firstText(listing.sellerName, listing.seller, listing.homesteadName, listing.ownerName, "Homestead Seller"),
+    phone: firstText(listing.phone, listing.sellerPhone),
+    email: firstText(listing.email, listing.sellerEmail),
+    photo: firstText(listing.photo, listing.photoUrl, listing.imageUrl, asArray(listing.photos)[0]),
+  };
+}
+
+function mapNotebookEntry(note) {
+  return {
+    id: String(note.id || `notebook-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    title: firstText(note.notebook, note.subject, note.title, "Homestead Goals"),
+    path: firstText(note.category, note.path, "General"),
+    body: firstText(note.body, note.note, note.notes, note.description),
+    projectId: firstText(note.linkedWorkshopProjectId, note.projectId),
+    source: note.source || "Notebook",
+  };
+}
+
+function mapContact(contact) {
+  return {
+    id: String(contact.id || `contact-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    name: firstText(contact.name, contact.title, "Saved Contact"),
+    type: firstText(contact.type, contact.role, contact.category, "Contact"),
+    detail: [contact.phone, contact.email, contact.location, contact.notes, contact.when].filter(Boolean).join(" · "),
+  };
+}
+
+function mapAnimalRecord(record, fallbackSpecies = "Animal") {
+  const notes = asArray(record.notes || record.records || record.entries || record.careLogs).map((note) => ({
+    id: String(note.id || `note-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    type: firstText(note.type, note.recordType, note.category, "General"),
+    body: firstText(note.body, note.details, note.notes, note.description, note.title),
+    date: firstText(note.date, note.eventDate, note.createdAt, new Date().toISOString().slice(0, 10)).slice(0, 10),
+  }));
+  return {
+    id: String(record.id || record.animalId || `animal-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    name: firstText(record.name, record.animalName, record.registeredName, record.callName, record.title, "Unnamed animal"),
+    species: firstText(record.species, record.animalType, record.type, fallbackSpecies),
+    tag: firstText(record.tag, record.tagNumber, record.identifier, record.registrationNumber),
+    status: firstText(record.status, record.stage, record.condition, "Active"),
+    contactId: "",
+    photo: firstText(record.photo, record.photoUri, record.imageUrl, asArray(record.photos)[0]),
+    notes,
+    sales: asArray(record.sales || record.saleRecords).map((sale) => ({
+      id: String(sale.id || `sale-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+      amount: firstText(sale.amount, sale.price, sale.total, sale.netTotal, "Sale"),
+      date: firstText(sale.date, sale.saleDate, sale.createdAt, new Date().toISOString().slice(0, 10)).slice(0, 10),
+    })),
+  };
+}
+
+function mapWorkshopProject(project) {
+  return {
+    id: String(project.id || `project-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    title: firstText(project.title, project.name, "Workshop Project"),
+    status: /plan|finished|complete/i.test(project.status || project.mode || "") ? "Plan" : "Idea",
+    category: firstText(project.categoryPath, project.category, "Workshop"),
+    supplies: asArray(project.supplies || project.materials || project.rows).map((supply) => ({
+      item: firstText(supply.item, supply.name, supply.material, "Supply"),
+      quantity: firstText(supply.quantity, supply.qty, "1"),
+      total: firstText(supply.total, supply.totalPrice, supply.cost, ""),
+      detail: firstText(supply.detail, supply.notes, supply.source),
+    })),
+  };
+}
+
+function buildWebsiteStateFromAppRecords(records) {
+  const next = {};
+  const homesteadData = records["homestead:data"] || {};
+
+  const recipes = mergeById(
+    asArray(homesteadData.recipes).map(mapRecipe),
+    asArray(records["homestead:recipe-book:recipes"]).map(mapRecipe),
+  );
+  if (recipes.length) next.recipes = mergeById(state.recipes, recipes);
+
+  const listings = mergeById(
+    asArray(homesteadData.tradingListings).map(mapTradingListing),
+    asArray(records["homestead:trading-listings"]).map(mapTradingListing),
+  );
+  if (listings.length) next.listings = mergeById(state.listings, listings);
+
+  const quickNotes = asArray(homesteadData.quickNotes).map(mapNotebookEntry);
+  if (quickNotes.length) next.notebookEntries = mergeById(state.notebookEntries, quickNotes);
+
+  const outpostListings = asArray(homesteadData.outpostListings).map((listing) => ({
+    id: `pin-${listing.id || Date.now()}`,
+    type: "Outpost",
+    name: firstText(listing.title, listing.businessName, listing.name, "Outpost"),
+    location: firstText(listing.location, listing.serviceArea, state.profile.area),
+    detail: firstText(listing.description, listing.details, listing.notes),
+    inventory: asArray(listing.services || listing.tags).map(String),
+    seller: firstText(listing.businessName, listing.name, "Outpost"),
+    saved: false,
+  }));
+  if (outpostListings.length) next.pins = mergeById(state.pins, outpostListings);
+
+  const profile = records["homestead:profile"];
+  if (profile && typeof profile === "object") {
+    next.profile = {
+      ...state.profile,
+      displayName: firstText(profile.displayName, profile.name, profile.homesteadName, state.profile.displayName),
+      area: firstText(profile.area, profile.location, profile.cityState, state.profile.area),
+      tier: firstText(profile.tier, profile.subscriptionTier, state.profile.tier),
+    };
+  }
+
+  const farmStand = records["draft:farm-stand"];
+  if (farmStand && typeof farmStand === "object") {
+    const stands = asArray(farmStand.farmStands).map((stand) => ({
+      id: String(stand.id || `stand-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+      name: firstText(stand.name, stand.title, "Farm Stand"),
+      location: firstText(stand.location, stand.address, state.profile.area),
+      notes: firstText(stand.description, stand.notes, "Farm Stand profile"),
+      items: asArray(farmStand.items)
+        .filter((item) => !item.standId || item.standId === stand.id)
+        .map((item) => ({
+          id: String(item.id || `item-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+          name: firstText(item.name, item.title, "Inventory item"),
+          category: firstText(item.category, item.type, "Inventory"),
+          quantity: Number(item.quantity ?? item.qty ?? 0),
+          lowAt: Number(item.lowAt ?? item.lowStockAt ?? 3),
+          unit: firstText(item.unit, item.quantityUnit),
+          price: firstText(item.price, item.priceLabel),
+          date: firstText(item.date, item.bakedDate, item.harvestDate, item.expirationDate).slice(0, 10),
+          description: firstText(item.description, item.notes),
+        })),
+    }));
+    if (stands.length) {
+      next.stands = mergeById(state.stands, stands);
+      next.selectedStandId = stands[0].id;
+    }
+  }
+
+  const choreStore = records["homestead:chore-list"];
+  if (choreStore && typeof choreStore === "object") {
+    const todos = asArray(choreStore.todos).map((todo) => ({
+      id: String(todo.id || `todo-${Date.now()}`),
+      text: firstText(todo.title, todo.text, todo.name, "To-Do"),
+      category: firstText(todo.category, "General"),
+      due: firstText(todo.due, todo.date, todo.todoDue).slice(0, 10),
+      done: Boolean(todo.done || todo.completed),
+    }));
+    const chores = asArray(choreStore.chores).map((chore) => ({
+      id: String(chore.id || `chore-${Date.now()}`),
+      name: firstText(chore.title, chore.name, "Chore"),
+      category: firstText(chore.category, "General"),
+      frequency: firstText(chore.frequency, "Daily"),
+      timeBlock: firstText(chore.timeBlock, asArray(chore.timeSlots)[0], "Daily"),
+      done: Boolean(chore.done || chore.completed),
+    }));
+    if (todos.length) next.todos = mergeById(state.todos, todos);
+    if (chores.length) next.chores = mergeById(state.chores, chores);
+  }
+
+  const contacts = asArray(records["homestead:emergency:contacts"]).map(mapContact);
+  if (contacts.length) next.contacts = mergeById(state.contacts, contacts);
+
+  const workshop = records["homestead:workshop-log"];
+  const projects = asArray(workshop?.projects).map(mapWorkshopProject);
+  if (projects.length) next.workshopProjects = mergeById(state.workshopProjects, projects);
+
+  const livestock = asArray(records["homestead:log-book"]?.livestockLogs).map((record) => mapAnimalRecord(record));
+  const animalLogs = asArray(records["homestead:animal-logs"]?.records).map((record) => mapAnimalRecord(record));
+  const horses = asArray(records["homestead:horse-log"]?.horses).map((record) => mapAnimalRecord(record, "Horse"));
+  const animals = mergeById(mergeById(livestock, animalLogs), horses);
+  if (animals.length) next.animals = mergeById(state.animals, animals);
+
+  const notificationPrefs = asArray(records["waystation:notification-preferences"]).map((pref) => ({
+    id: String(pref.id || pref.feature || `notification-${Date.now()}`),
+    title: firstText(pref.title, pref.feature, "Notification"),
+    detail: firstText(pref.detail, pref.category, pref.species, "App notification preference"),
+    enabled: Boolean(pref.enabled),
+  }));
+  if (notificationPrefs.length) next.notificationPrefs = mergeById(state.notificationPrefs, notificationPrefs);
+
+  return next;
+}
+
+async function loadAppRecordsIntoWebsite() {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.loadAppRecords) {
+    notify("Supabase app record loading is not available in this website build.");
+    return;
+  }
+  try {
+    const user = currentUser || (await refreshCurrentUser());
+    if (!user) {
+      notify("Sign in before loading app records.");
+      return;
+    }
+    const records = await adapter.loadAppRecords();
+    const recordCount = Object.keys(records).length;
+    if (!recordCount) {
+      notify("No app records found for this account yet.");
+      renderAppRecordSummary(records);
+      return;
+    }
+    syncingFromCloud = true;
+    state = normalizeState({ ...state, ...buildWebsiteStateFromAppRecords(records) });
+    window.localStorage.setItem(storageKey, JSON.stringify(state));
+    renderAll();
+    renderAppRecordSummary(records);
+    notify(`Loaded ${recordCount} app record groups.`);
+    syncingFromCloud = false;
+    await saveCloudState({ quiet: true });
+  } catch (error) {
+    syncingFromCloud = false;
+    notify("App records could not be loaded. Check sign-in and Supabase access.");
+  }
+}
+
+function renderAppRecordSummary(records = null) {
+  const target = $("#appRecordSummary");
+  if (!target) return;
+  if (!records) {
+    target.innerHTML = Object.entries(appRecordLabels)
+      .map(([key, label]) => `<li><span>${e(label)}</span><em>${e(key)}</em></li>`)
+      .join("");
+    return;
+  }
+  target.innerHTML = Object.entries(appRecordLabels)
+    .map(([key, label]) => {
+      const hasRecord = Object.prototype.hasOwnProperty.call(records, key);
+      return `<li class="${hasRecord ? "synced" : ""}"><span>${e(label)}</span><em>${hasRecord ? "Found" : "No record yet"}</em></li>`;
+    })
+    .join("");
 }
 
 function notify(message) {
@@ -1338,9 +1631,11 @@ function renderPosts() {
 function renderAnimals() {
   const board = $("#animalBoard");
   const areas = $("#recordAreaGrid");
+  const workspace = $("#desktopRecordWorkspace");
   if (!board || !areas) return;
   const filter = $("#animalSpeciesFilter")?.value || "all";
   const animals = filter === "all" ? state.animals : state.animals.filter((animal) => animal.species === filter);
+  const selectedAnimal = animals[0] || state.animals[0];
 
   board.innerHTML = animals
     .map((animal) => {
@@ -1408,6 +1703,57 @@ function renderAnimals() {
       `,
     )
     .join("");
+
+  if (workspace) {
+    if (!selectedAnimal) {
+      workspace.innerHTML = `<p class="muted">No animal records loaded yet. Add an animal or load app records from Account.</p>`;
+    } else {
+      const contact = state.contacts.find((item) => item.id === selectedAnimal.contactId);
+      workspace.innerHTML = `
+        <div class="panel-title-row">
+          <div>
+            <div class="eyebrow">Desktop Record Workspace</div>
+            <h3>${e(selectedAnimal.name)}</h3>
+          </div>
+          <span class="count-pill">${e(selectedAnimal.species)}</span>
+        </div>
+        <div class="record-workspace-grid">
+          <div>
+            <strong>Profile</strong>
+            <span>${e(selectedAnimal.tag || "No tag")} · ${e(selectedAnimal.status || "Active")}</span>
+            ${contact ? `<span>${e(contact.name)} · ${e(contact.type)}</span>` : `<span>No contact linked yet</span>`}
+          </div>
+          <div>
+            <strong>Recent records</strong>
+            ${asArray(selectedAnimal.notes)
+              .slice(0, 4)
+              .map((note) => `<span>${formatShortDate(note.date)} · ${e(note.type)} · ${e(note.body)}</span>`)
+              .join("") || "<span>No records yet</span>"}
+          </div>
+          <div>
+            <strong>Sales</strong>
+            ${asArray(selectedAnimal.sales)
+              .slice(0, 3)
+              .map((sale) => `<span>${formatShortDate(sale.date)} · ${e(sale.amount)}</span>`)
+              .join("") || "<span>No sales yet</span>"}
+          </div>
+        </div>
+        <form class="inline-form note-form desktop-note-form" data-animal-note="${e(selectedAnimal.id)}">
+          <select name="type">
+            <option>Health</option>
+            <option>Medication</option>
+            <option>Breeding</option>
+            <option>Feed</option>
+            <option>Training</option>
+            <option>Production</option>
+            <option>General</option>
+          </select>
+          <input name="body" type="text" placeholder="Add a detailed desktop note" required />
+          <button class="button compact" type="submit">Save Record</button>
+        </form>
+      `;
+    }
+  }
 }
 
 function renderFieldGuide() {
@@ -1689,6 +2035,7 @@ function renderAll() {
   renderNotebook();
   renderProfile();
   renderConnectionStatus();
+  renderAppRecordSummary();
 }
 
 document.addEventListener("click", async (event) => {
@@ -2232,6 +2579,10 @@ document.addEventListener("click", async (event) => {
 
   if (target.id === "loadCloudData") {
     loadCloudState();
+  }
+
+  if (target.id === "loadAppRecords") {
+    loadAppRecordsIntoWebsite();
   }
 
   if (target.id === "saveCloudData") {

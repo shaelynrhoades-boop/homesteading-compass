@@ -612,6 +612,7 @@
             </form>
             <div class="animal-board" id="animalBoard"></div>
           </div>
+          <article class="tool-panel desktop-record-panel" id="desktopRecordWorkspace"></article>
           <div class="record-area-grid" id="recordAreaGrid"></div>
         </section>
 
@@ -982,14 +983,16 @@
               <h3>Supabase Sync</h3>
               <p class="muted">
                 The app uses account-backed saving for permanent records. This
-                website preview shows the same rule clearly: sign in before
-                relying on records across updates or devices.
+                website can load the same account records so longer desktop
+                entries and phone-friendly photo workflows can work together.
               </p>
               <div class="connection-status" id="supabaseStatus" aria-live="polite"></div>
               <div class="data-actions">
-                <button class="button compact" type="button" id="loadCloudData">Load Cloud Data</button>
+                <button class="button compact" type="button" id="loadAppRecords">Load App Records</button>
+                <button class="button compact secondary" type="button" id="loadCloudData">Load Website Workspace</button>
                 <button class="button compact secondary" type="button" id="saveCloudData">Save Cloud Data</button>
               </div>
+              <ul class="record-sync-list" id="appRecordSummary" aria-label="App record groups"></ul>
             </article>
             <article class="tool-panel">
               <div class="eyebrow">Demo Data</div>
