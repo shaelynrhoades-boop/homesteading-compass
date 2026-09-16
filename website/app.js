@@ -154,6 +154,7 @@ const defaultState = {
     { id: "supply-2", item: "Wormer", category: "Horses", quantity: "1", unit: "tube", preferredPlace: "Tractor Supply", destination: "Horse cabinet" },
   ],
   preferredPlaces: ["Co-op", "Tractor Supply", "Feed Mill"],
+  quickAccess: ["log-book", "farm-stand", "notebook", "trading-post"],
   almanacEvents: [
     { id: "alm-1", title: "Start fall brassica tray", date: "2026-08-25", source: "Garden" },
     { id: "alm-2", title: "CDT booster check for doelings", date: "2026-08-28", source: "Animal Log" },
@@ -390,6 +391,7 @@ function normalizeState(saved) {
     chores: Array.isArray(saved.chores) ? saved.chores : clone(defaultState.chores),
     supplyRuns: Array.isArray(saved.supplyRuns) ? saved.supplyRuns : clone(defaultState.supplyRuns),
     preferredPlaces: Array.isArray(saved.preferredPlaces) ? saved.preferredPlaces : clone(defaultState.preferredPlaces),
+    quickAccess: Array.isArray(saved.quickAccess) ? saved.quickAccess : clone(defaultState.quickAccess),
     almanacEvents: Array.isArray(saved.almanacEvents)
       ? saved.almanacEvents
       : clone(defaultState.almanacEvents),
@@ -803,6 +805,47 @@ function renderSupplyRuns() {
         </article>
       `,
     )
+    .join("");
+}
+
+const quickAccessOptions = [
+  ["almanac", "Almanac"],
+  ["alerts", "Weather & Alerts"],
+  ["farm-stand", "Farm Stand"],
+  ["emergency-plan", "Emergency Plan"],
+  ["post-box", "Post Box"],
+  ["log-book", "Log Book"],
+  ["field-guide", "Field Guide"],
+  ["workshop", "Workshop"],
+  ["recipe-book", "Recipe Book"],
+  ["notebook", "Notebook & Contacts"],
+  ["porch-light", "Porch Light Map"],
+  ["trading-post", "Trading Post"],
+  ["outpost", "Outpost"],
+  ["front-porch", "Front Porch"],
+  ["notifications", "Notifications"],
+];
+
+function renderQuickAccess() {
+  const menu = $("#quickAccessMenu");
+  if (!menu) return;
+  const slots = [...state.quickAccess].slice(0, 4);
+  while (slots.length < 4) slots.push("");
+  menu.innerHTML = slots
+    .map((tab, index) => {
+      const option = quickAccessOptions.find(([id]) => id === tab);
+      return `
+        <div class="quick-slot">
+          <button type="button" data-menu-tab="${e(tab || "almanac")}">${e(option?.[1] || "Empty")}</button>
+          <select data-quick-slot="${index}" aria-label="Choose quick access ${index + 1}">
+            <option value="">Empty</option>
+            ${quickAccessOptions
+              .map(([id, label]) => `<option value="${e(id)}"${id === tab ? " selected" : ""}>${e(label)}</option>`)
+              .join("")}
+          </select>
+        </div>
+      `;
+    })
     .join("");
 }
 
@@ -1627,6 +1670,7 @@ function renderAll() {
   renderTodos();
   renderChores();
   renderSupplyRuns();
+  renderQuickAccess();
   renderAlmanacEvents();
   renderStands();
   renderMessages();
@@ -2563,6 +2607,14 @@ document.addEventListener("change", (event) => {
   if (event.target.id === "pinTypeFilter") renderPins();
   if (event.target.id === "postTopicFilter") renderPosts();
   if (event.target.id === "fieldGuideFilter") renderFieldGuide();
+  if (event.target.dataset.quickSlot) {
+    const index = Number(event.target.dataset.quickSlot);
+    state.quickAccess[index] = event.target.value;
+    state.quickAccess = state.quickAccess.slice(0, 4);
+    saveState();
+    renderQuickAccess();
+    notify("Quick Access updated.");
+  }
   if (event.target.id === "animalSpeciesFilter") {
     renderAnimals();
     renderNotebook();
