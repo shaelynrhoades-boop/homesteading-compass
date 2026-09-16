@@ -3,8 +3,9 @@
 Static public website for `thehomesteadingcompass.com`.
 
 The homepage includes an interactive app-style preview in `app.js`. It uses
-browser `localStorage` only right now, so it does not require Supabase keys,
-user login, or storage buckets yet.
+browser `localStorage` by default, with optional Supabase preview sync when the
+public browser keys are configured. It never uses service-role keys in the
+browser.
 
 `supabase-adapter.js` is a placeholder boundary for the later real connection.
 When the website becomes a real web app, replace the local preview state with
@@ -22,9 +23,10 @@ The Account tab has local demo-data tools for testing:
 - Reset Demo Data clears local changes and restores the default preview.
 
 The local preview currently includes interactive Almanac reminders, To Dos,
-recurring chores, Farm Alerts/weather settings, animal Log Book records, Recipe
-Book entries, Farm Stand inventory, Post Box messages, Porch Light pins, Trading
-Post listings, and Front Porch posts.
+recurring chores, Farm Alerts/weather settings, shared Emergency Plan preview,
+Notebook and Contacts, animal Log Book records, Recipe Book entries, Farm Stand
+inventory, Post Box messages, Porch Light pins, Trading Post listings, Outpost
+context, and Front Porch posts.
 
 ## App-Like Website Files
 

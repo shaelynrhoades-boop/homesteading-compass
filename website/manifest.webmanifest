@@ -1,7 +1,7 @@
 {
   "name": "The Homesteading Compass",
   "short_name": "Homestead",
-  "description": "Homestead planning, farm records, Farm Stand, Post Box, and local Waystation tools.",
+  "description": "Homestead planning, records, Notebook, Emergency Plan, Farm Stand, Post Box, and local Waystation tools.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

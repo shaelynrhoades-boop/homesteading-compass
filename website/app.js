@@ -11,6 +11,72 @@ const defaultState = {
     area: "Lebanon, TN",
     tier: "Hobby Farm",
   },
+  contacts: [
+    {
+      id: "contact-1",
+      name: "Cedar Creek Vet Clinic",
+      type: "Vet",
+      detail: "Shared between livestock records and the emergency plan.",
+    },
+    {
+      id: "contact-2",
+      name: "Mason Farm Sitting",
+      type: "Farm Sitter",
+      detail: "Can be included on shared emergency plans and Post Box contacts.",
+    },
+    {
+      id: "contact-3",
+      name: "Hollow Ridge Farrier",
+      type: "Farrier",
+      detail: "Linked to horse records and recurring care reminders.",
+    },
+  ],
+  messageDrafts: [],
+  notebookEntries: [
+    {
+      id: "notebook-1",
+      title: "Homestead Goals",
+      path: "Livestock > Goats > Shelter",
+      body: "Build a dry winter shelter with kidding stall panels and a hay shelf.",
+      projectId: "project-1",
+      source: "Notebook",
+    },
+    {
+      id: "notebook-2",
+      title: "Field Guide Notes",
+      path: "Livestock > Rabbits > Heat",
+      body: "Save only the useful sentence or checklist item from the Field Guide into the category where it belongs.",
+      projectId: "",
+      source: "Field Guide",
+    },
+  ],
+  workshopProjects: [
+    { id: "project-1", title: "Goat Shelter Refresh", status: "Idea" },
+    { id: "project-2", title: "Butcher Workstation", status: "Plan" },
+    { id: "project-3", title: "Farm Stand Cooler Shelf", status: "Plan" },
+  ],
+  emergencyPlan: {
+    propertyName: "Sunny Ridge Homestead",
+    location: "Lebanon, TN",
+    activeType: "",
+    peoplePets: [
+      { id: "safe-1", name: "Shaelyn", role: "Adult", safe: true },
+      { id: "safe-2", name: "Farm Sitter", role: "Shared access", safe: false },
+      { id: "safe-3", name: "House Dogs", role: "Pets", safe: true },
+      { id: "safe-4", name: "Rabbitry", role: "Animals", safe: false },
+    ],
+    checklist: [
+      { id: "em-1", text: "Start group alert and choose emergency type", done: true },
+      { id: "em-2", text: "Confirm people and pets are accounted for", done: false },
+      { id: "em-3", text: "Move animals according to the movement plan", done: false },
+      { id: "em-4", text: "Call emergency services or professional contacts as needed", done: false },
+    ],
+    animalMovement: [
+      { id: "move-1", text: "Rabbits to travel cages by back gate", done: false },
+      { id: "move-2", text: "Goats to north dry lot if safe", done: false },
+      { id: "move-3", text: "Poultry doors closed after head count", done: false },
+    ],
+  },
   todos: [
     { id: "todo-1", text: "Check Farm Stand eggs before noon", done: false },
     { id: "todo-2", text: "Update garden watering notes", done: true },
@@ -25,6 +91,12 @@ const defaultState = {
     { id: "alm-2", title: "CDT booster check for doelings", date: "2026-08-28", source: "Animal Log" },
     { id: "alm-3", title: "Farm Stand price board refresh", date: "2026-08-30", source: "Chore List" },
   ],
+  farmStandSetup: [
+    { id: "farm-profile", text: "Farm profile started", done: true },
+    { id: "stand-location", text: "Add Farm Stand location", done: false },
+    { id: "low-stock", text: "Add low-stock limits", done: false },
+    { id: "post-box", text: "Post Box ready", done: true },
+  ],
   weather: {
     location: "Lebanon, TN",
     condition: "Hot and humid",
@@ -38,9 +110,9 @@ const defaultState = {
       location: "Lebanon, TN",
       notes: "Self-serve porch cooler. Cash box and pickup notes at the stand.",
       items: [
-        { id: "item-1", name: "Eggs", quantity: 3, lowAt: 6, unit: "dozen" },
-        { id: "item-2", name: "Honey", quantity: 12, lowAt: 4, unit: "jars" },
-        { id: "item-3", name: "Tomatoes", quantity: 18, lowAt: 8, unit: "pints" },
+        { id: "item-1", name: "Eggs", category: "Eggs", quantity: 3, lowAt: 6, unit: "dozen", price: "$5", date: "2026-08-24" },
+        { id: "item-2", name: "Honey", category: "Pantry", quantity: 12, lowAt: 4, unit: "jars", price: "$12", date: "2026-08-20" },
+        { id: "item-3", name: "Tomatoes", category: "Produce", quantity: 18, lowAt: 8, unit: "pints", price: "$4", date: "2026-08-24" },
       ],
     },
   ],
@@ -56,9 +128,9 @@ const defaultState = {
     },
     {
       id: "msg-2",
-      category: "Farm Alerts",
-      subject: "Filter menu request",
-      body: "Move alert filters behind a Filter button with Clear Filters inside.",
+      category: "Notebook",
+      subject: "Notebook entry disappeared",
+      body: "Website preview now includes the Notebook category and clearer save/sync status.",
       createdAt: "2026-08-23T16:45:00.000Z",
       unread: false,
       photo: "",
@@ -70,23 +142,39 @@ const defaultState = {
       type: "Farm Stand",
       name: "Sunny Ridge Farm Stand",
       location: "Lebanon, TN",
-      detail: "Eggs, honey, tomatoes, and porch cooler pickup.",
+      detail: "Inventory grouped by the stand, not as loose item cards.",
+      inventory: ["Eggs - $5/dozen", "Honey - $12/jar", "Tomatoes - $4/pint"],
+      seller: "Sunny Ridge Farm Stand",
       saved: true,
     },
     {
       id: "pin-2",
-      type: "Swap",
-      name: "Seed and Starts Swap",
+      type: "Trading Post",
+      name: "Hartsville Homestead Listings",
       location: "Watertown, TN",
-      detail: "Tomato starts, herb cuttings, jars, and garden stakes.",
+      detail: "Tap the pin to see seller inventory, then visit their filtered Trading Post view.",
+      inventory: ["Nigerian Dwarf doelings - contact seller", "Kidding pen - $80", "Garden stakes - $2/bundle"],
+      seller: "Hartsville Homestead",
       saved: false,
     },
     {
       id: "pin-3",
-      type: "Service",
-      name: "Mobile Hoof Trim",
+      type: "Outpost",
+      name: "Hollow Ridge Farrier",
       location: "Wilson County, TN",
-      detail: "Goats, sheep, and small herd appointments.",
+      detail: "OP service profile with contact, radius, and linked availability.",
+      inventory: ["Farrier visits", "Hoof trim records", "Emergency lameness referrals"],
+      seller: "Hollow Ridge Farrier",
+      saved: false,
+    },
+    {
+      id: "pin-4",
+      type: "Homestead",
+      name: "Porch Light On",
+      location: "Gallatin, TN",
+      detail: "Shared homestead pin for local connection without exposing a full address.",
+      inventory: ["Porch Light profile", "Front Porch posts", "Saved local profile"],
+      seller: "Gallatin Homestead",
       saved: false,
     },
   ],
@@ -97,8 +185,12 @@ const defaultState = {
       title: "Pasture-raised eggs",
       location: "Lebanon, TN",
       price: "$5 / dozen",
-      detail: "Washed or unwashed by request. Pickup near the stand.",
+      detail: "Pulled from Farm Stand inventory. Message, call, text, or email from seller profile.",
       saved: false,
+      seller: "Sunny Ridge Farm Stand",
+      phone: "(615) 555-0148",
+      email: "stand@example.com",
+      photo: "/assets/icon-farm-stand.png",
     },
     {
       id: "listing-2",
@@ -106,8 +198,12 @@ const defaultState = {
       title: "Nigerian Dwarf doelings",
       location: "Hartsville, TN",
       price: "Contact seller",
-      detail: "Bottle raised, friendly, CDT current.",
+      detail: "Listing can reuse livestock photos and records already saved in the Log Book.",
       saved: false,
+      seller: "Hartsville Homestead",
+      phone: "(615) 555-0182",
+      email: "seller@example.com",
+      photo: "/assets/icon-logbook.png",
     },
     {
       id: "listing-3",
@@ -115,8 +211,12 @@ const defaultState = {
       title: "Two-panel kidding pen",
       location: "Gallatin, TN",
       price: "$80",
-      detail: "Light use, gate latch included.",
+      detail: "Drafted from Workshop supplies and marked available in Trading Post.",
       saved: true,
+      seller: "Cedar Lane Workshop",
+      phone: "(615) 555-0120",
+      email: "workshop@example.com",
+      photo: "/assets/icon-workshop.png",
     },
   ],
   posts: [
@@ -142,6 +242,7 @@ const defaultState = {
       species: "Goat",
       tag: "G-014",
       status: "Milking",
+      contactId: "contact-1",
       notes: [
         { id: "note-1", type: "Health", body: "CDT current. Hooves due next week.", date: "2026-08-20" },
         { id: "note-2", type: "Production", body: "Good milker, steady on the stand.", date: "2026-08-22" },
@@ -153,6 +254,7 @@ const defaultState = {
       species: "Cattle",
       tag: "B-203",
       status: "Bred",
+      contactId: "contact-1",
       notes: [
         { id: "note-3", type: "Breeding", body: "Expected calving window added to Almanac.", date: "2026-08-18" },
       ],
@@ -175,6 +277,7 @@ const defaultState = {
       type: "Breakfast",
       ingredients: "eggs, tomatoes, basil",
       notes: "Good for using cracked eggs and ripe tomatoes from the stand.",
+      source: "Your Recipe",
     },
     {
       id: "recipe-2",
@@ -182,6 +285,7 @@ const defaultState = {
       type: "Baking",
       ingredients: "honey, oats, flour",
       notes: "Two loaf batch. Track honey jars used against pantry stock.",
+      source: "Neighbor's Recipe",
     },
     {
       id: "recipe-3",
@@ -189,6 +293,7 @@ const defaultState = {
       type: "Canning",
       ingredients: "cucumbers, dill, vinegar",
       notes: "Not shelf stable. Label jars with use-by dates.",
+      source: "Starter Recipe",
     },
   ],
 };
@@ -219,10 +324,34 @@ function normalizeState(saved) {
       ? saved.almanacEvents
       : clone(defaultState.almanacEvents),
     weather: { ...defaultState.weather, ...(saved.weather || {}) },
+    farmStandSetup: Array.isArray(saved.farmStandSetup)
+      ? saved.farmStandSetup
+      : clone(defaultState.farmStandSetup),
+    contacts: Array.isArray(saved.contacts) ? saved.contacts : clone(defaultState.contacts),
+    notebookEntries: Array.isArray(saved.notebookEntries)
+      ? saved.notebookEntries
+      : clone(defaultState.notebookEntries),
+    workshopProjects: Array.isArray(saved.workshopProjects)
+      ? saved.workshopProjects
+      : clone(defaultState.workshopProjects),
+    emergencyPlan: {
+      ...clone(defaultState.emergencyPlan),
+      ...(saved.emergencyPlan || {}),
+      peoplePets: Array.isArray(saved.emergencyPlan?.peoplePets)
+        ? saved.emergencyPlan.peoplePets
+        : clone(defaultState.emergencyPlan.peoplePets),
+      checklist: Array.isArray(saved.emergencyPlan?.checklist)
+        ? saved.emergencyPlan.checklist
+        : clone(defaultState.emergencyPlan.checklist),
+      animalMovement: Array.isArray(saved.emergencyPlan?.animalMovement)
+        ? saved.emergencyPlan.animalMovement
+        : clone(defaultState.emergencyPlan.animalMovement),
+    },
     stands: Array.isArray(saved.stands) ? saved.stands : clone(defaultState.stands),
     messages: Array.isArray(saved.messages) ? saved.messages : clone(defaultState.messages),
     pins: Array.isArray(saved.pins) ? saved.pins : clone(defaultState.pins),
     listings: Array.isArray(saved.listings) ? saved.listings : clone(defaultState.listings),
+    messageDrafts: Array.isArray(saved.messageDrafts) ? saved.messageDrafts : clone(defaultState.messageDrafts),
     posts: Array.isArray(saved.posts) ? saved.posts : clone(defaultState.posts),
     animals: Array.isArray(saved.animals) ? saved.animals : clone(defaultState.animals),
     recipes: Array.isArray(saved.recipes) ? saved.recipes : clone(defaultState.recipes),
@@ -383,6 +512,107 @@ function getLowItems(stand) {
   return stand.items.filter((item) => Number(item.quantity) <= Number(item.lowAt));
 }
 
+function getStandStockStatus(stand) {
+  if (!stand.items.length) return "empty";
+  return getLowItems(stand).length ? "low" : "good";
+}
+
+function getMessageContacts() {
+  const contacts = new Map();
+  contacts.set("support", {
+    id: "support",
+    name: "App Support",
+    detail: "Pinned support and admin contact",
+    category: "Support",
+    pinned: true,
+  });
+  state.contacts.forEach((contact) => {
+    contacts.set(`contact-${contact.id}`, {
+      id: `contact-${contact.id}`,
+      name: contact.name,
+      detail: `${contact.type} contact`,
+      category: contact.type === "Seller" ? "Trading Post" : "Notebook",
+    });
+  });
+  state.listings
+    .filter((listing) => listing.saved || listing.seller)
+    .forEach((listing) => {
+      contacts.set(`seller-${listing.seller || listing.id}`, {
+        id: `seller-${listing.seller || listing.id}`,
+        name: listing.seller || "Saved Seller",
+        detail: `${listing.location} · ${listing.title}`,
+        category: "Trading Post",
+        listingId: listing.id,
+      });
+    });
+  state.messages.forEach((message) => {
+    if (!message.recipientName) return;
+    contacts.set(`message-${message.recipientName}`, {
+      id: `message-${message.recipientName}`,
+      name: message.recipientName,
+      detail: `Previously messaged · ${message.category}`,
+      category: message.category,
+    });
+  });
+  return [...contacts.values()].sort((a, b) => {
+    if (a.pinned) return -1;
+    if (b.pinned) return 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function setComposeDraft(contact) {
+  $("#composeRecipient").value = contact.id;
+  $("#messageDialogTitle").textContent = contact.name;
+  $("#composeCategory").value = contact.category || "Support";
+  const draft = state.messageDrafts.find((item) => item.recipientId === contact.id);
+  $("#composeSubject").value = draft?.subject || "";
+  $("#composeBody").value = draft?.body || "";
+}
+
+function saveCurrentMessageDraft(options = {}) {
+  const recipientId = $("#composeRecipient")?.value;
+  const subject = $("#composeSubject")?.value.trim() || "";
+  const body = $("#composeBody")?.value.trim() || "";
+  if (!recipientId || (!subject && !body)) return false;
+  const contact = getMessageContacts().find((item) => item.id === recipientId);
+  const draft = {
+    id: `draft-${recipientId}`,
+    recipientId,
+    recipientName: contact?.name || "Post Box contact",
+    category: $("#composeCategory")?.value || contact?.category || "Support",
+    subject,
+    body,
+    updatedAt: new Date().toISOString(),
+  };
+  state.messageDrafts = [draft, ...state.messageDrafts.filter((item) => item.recipientId !== recipientId)];
+  saveState();
+  if (!options.quiet) notify("Draft saved.");
+  return true;
+}
+
+function renderFarmStandSetup() {
+  const toggle = $("#setupToggle");
+  const list = $("#setupList");
+  if (!toggle || !list) return;
+
+  const tasks = state.farmStandSetup || [];
+  const isComplete = tasks.length > 0 && tasks.every((task) => task.done);
+  toggle.hidden = isComplete;
+  list.hidden = isComplete || toggle.getAttribute("aria-expanded") !== "true";
+
+  list.innerHTML = tasks
+    .map(
+      (task) => `
+        <button class="setup-item ${task.done ? "done" : "warning"}" type="button" data-toggle-setup="${task.id}">
+          <span>${task.done ? "✓" : "!"}</span>
+          ${e(task.text)}
+        </button>
+      `,
+    )
+    .join("");
+}
+
 function renderTodos() {
   const list = $("#todoList");
   const count = $("#todoCount");
@@ -445,6 +675,8 @@ function renderStands() {
   const cards = $("#standCards");
   const detail = $("#standDetail");
   if (!cards || !detail) return;
+  detail.hidden = true;
+  detail.innerHTML = "";
 
   if (state.stands.length === 1) {
     state.selectedStandId = state.stands[0].id;
@@ -452,68 +684,81 @@ function renderStands() {
 
   cards.innerHTML = state.stands
     .map((stand) => {
-      const lowCount = getLowItems(stand).length;
+      const status = getStandStockStatus(stand);
+      const isActive = stand.id === state.selectedStandId;
       return `
-        <article class="stand-card ${stand.id === state.selectedStandId ? "active" : ""}">
-          <h3>${e(stand.name)}</h3>
-          <p>${e(stand.location)}</p>
-          <div class="mini-metric"><span>Total Items:</span><strong>${stand.items.length}</strong></div>
-          <div class="mini-metric"><span>Low Item Status</span><strong>${lowCount ? `${lowCount} low` : "Good"}</strong></div>
-          <button class="button compact" type="button" data-view-stand="${stand.id}">View Stand</button>
+        <article class="stand-card ${isActive ? "active" : ""}">
+          <button class="stand-card-main" type="button" data-view-stand="${stand.id}" aria-expanded="${isActive}">
+            <span class="stock-dot ${status}" aria-label="${status === "good" ? "Inventory stocked" : status === "low" ? "Inventory low" : "No inventory"}"></span>
+            <span>
+              <span class="stand-card-title">${e(stand.name)}</span>
+              <span class="stand-card-summary">${stand.items.length} items</span>
+            </span>
+          </button>
+          ${
+            isActive
+              ? `
+                <div class="stand-open-panel">
+                  <div class="stand-open-top">
+                    <details class="info-popover">
+                      <summary aria-label="Farm Stand information">i</summary>
+                      <div>
+                        <strong>Farm Stand Description</strong>
+                        <p>${e(stand.notes)}</p>
+                        <p><strong>Type:</strong> Self-serve stand</p>
+                        <p><strong>Address:</strong> ${e(stand.location)}</p>
+                        <div class="legend-row"><span class="stock-dot good"></span> Inventory is stocked.</div>
+                        <div class="legend-row"><span class="stock-dot low"></span> One or more items are low.</div>
+                        <div class="legend-row"><span class="stock-dot empty"></span> No items are listed yet.</div>
+                        <div class="legend-row"><span class="action-glyph">✎</span> Edit stand details.</div>
+                        <div class="legend-row"><span class="action-glyph">⇄</span> Share this stand to Trading Post.</div>
+                      </div>
+                    </details>
+                    <div class="stand-action-rail" aria-label="Stand actions">
+                      <span class="stock-dot ${status}" aria-hidden="true"></span>
+                      <button class="icon-action" type="button" id="editStandButton" aria-label="Edit stand">✎</button>
+                      <button class="icon-action" type="button" id="addItemToggle" aria-label="Add item">+</button>
+                      <button class="icon-action" type="button" data-share-stand="${stand.id}" aria-label="Share to Trading Post">⇄</button>
+                    </div>
+                  </div>
+                  <form class="inline-form add-item-form" id="itemForm" hidden>
+                    <input id="itemName" type="text" placeholder="Item name" required />
+                    <input id="itemQty" type="number" min="0" placeholder="Qty" required />
+                    <input id="itemUnit" type="text" placeholder="Unit" />
+                    <button class="button compact" type="submit">Add</button>
+                  </form>
+                  <div class="inventory-list">
+                    ${stand.items
+                      .map(
+                        (item) => `
+                          <div class="inventory-row ${Number(item.quantity) <= Number(item.lowAt) ? "low" : ""}">
+                            <strong>${e(item.name)}</strong>
+                            <div class="quantity-control">
+                              <button type="button" data-adjust-item="${item.id}" data-delta="-1">−</button>
+                              <span>${e(item.quantity)} ${e(item.unit || "")}</span>
+                              <button type="button" data-adjust-item="${item.id}" data-delta="1">+</button>
+                            </div>
+                          </div>
+                        `,
+                      )
+                      .join("")}
+                  </div>
+                </div>
+              `
+              : ""
+          }
         </article>
       `;
     })
     .join("");
-
-  const stand = state.stands.find((item) => item.id === state.selectedStandId) || state.stands[0];
-  if (!stand) {
-    detail.innerHTML = "<h3>No stand yet</h3><p>Create a stand to start tracking inventory.</p>";
-    return;
-  }
-
-  detail.innerHTML = `
-    <div class="panel-title-row">
-      <div>
-        <div class="eyebrow">Selected Stand</div>
-        <button class="editable-title" type="button" id="editStandName">${e(stand.name)}</button>
-      </div>
-      <button class="button compact secondary" type="button" id="editStandLocation">Edit Location</button>
-    </div>
-    <p class="stand-location">${e(stand.location)}</p>
-    <p class="muted">${e(stand.notes)}</p>
-    <form class="inline-form" id="itemForm">
-      <input id="itemName" type="text" placeholder="Item name" required />
-      <input id="itemQty" type="number" min="0" placeholder="Qty" required />
-      <input id="itemUnit" type="text" placeholder="Unit" />
-      <button class="button compact" type="submit">Add Item</button>
-    </form>
-    <div class="inventory-list">
-      ${stand.items
-        .map((item) => {
-          const low = Number(item.quantity) <= Number(item.lowAt);
-          return `
-            <div class="inventory-row ${low ? "low" : ""}">
-              <div>
-                <strong>${e(item.name)}</strong>
-                <span>${low ? "Low item" : "In stock"}</span>
-              </div>
-              <div class="quantity-control">
-                <button type="button" data-adjust-item="${item.id}" data-delta="-1">−</button>
-                <span>${e(item.quantity)} ${e(item.unit || "")}</span>
-                <button type="button" data-adjust-item="${item.id}" data-delta="1">+</button>
-              </div>
-            </div>
-          `;
-        })
-        .join("")}
-    </div>
-  `;
 }
 
 function renderMessages() {
   const list = $("#messageList");
   const indicator = $("#unreadIndicator");
   const openCount = $("#openMessageCount");
+  const contactList = $("#postboxContactList");
+  const contactCount = $("#postboxContactCount");
   if (!list || !indicator) return;
 
   const search = ($("#messageSearch")?.value || "").trim().toLowerCase();
@@ -538,6 +783,21 @@ function renderMessages() {
   const unread = state.messages.some((message) => message.unread);
   indicator.classList.toggle("visible", unread);
   if (openCount) openCount.textContent = String(state.messages.length);
+  const contacts = getMessageContacts();
+  if (contactCount) contactCount.textContent = String(Math.max(0, contacts.length - 1));
+  if (contactList) {
+    contactList.innerHTML = contacts
+      .map((contact) => {
+        const draft = state.messageDrafts.find((item) => item.recipientId === contact.id);
+        return `
+          <button class="contact-button ${contact.pinned ? "pinned" : ""}" type="button" data-open-message-contact="${e(contact.id)}">
+            <strong>${e(contact.name)}</strong>
+            <span>${e(contact.detail)}${draft ? " · Draft saved" : ""}</span>
+          </button>
+        `;
+      })
+      .join("");
+  }
 
   list.innerHTML = messages
     .map(
@@ -548,8 +808,15 @@ function renderMessages() {
             <span>${formatDate(message.createdAt)}</span>
           </div>
           <h3>${e(message.subject)}</h3>
+          ${message.recipientName ? `<p class="seller-line">To: ${e(message.recipientName)}</p>` : ""}
           <p>${e(message.body)}</p>
-          ${message.photo ? `<img class="message-photo" src="${message.photo}" alt="Attached preview" />` : ""}
+          ${
+            Array.isArray(message.photos)
+              ? message.photos.map((photo) => `<img class="message-photo" src="${photo}" alt="Attached preview" />`).join("")
+              : message.photo
+                ? `<img class="message-photo" src="${message.photo}" alt="Attached preview" />`
+                : ""
+          }
           <button class="button compact secondary" type="button" data-read-message="${message.id}">
             ${message.unread ? "Mark Read" : "Mark Unread"}
           </button>
@@ -614,6 +881,70 @@ function renderAlerts() {
     .join("");
 }
 
+function renderEmergencyPlan() {
+  const plan = state.emergencyPlan || defaultState.emergencyPlan;
+  const propertyName = $("#emergencyPropertyName");
+  const propertyDetail = $("#emergencyPropertyDetail");
+  const mode = $("#emergencyMode");
+  const peopleList = $("#emergencyPeopleList");
+  const checklist = $("#emergencyChecklist");
+  const movement = $("#animalMovementPlan");
+  const contacts = $("#emergencyContactList");
+  if (!propertyName || !propertyDetail || !mode || !peopleList || !checklist || !movement || !contacts) return;
+
+  propertyName.textContent = plan.propertyName;
+  propertyDetail.textContent =
+    `${plan.location}. Shared emergency plans can keep family, workers, and farm sitters working from the same checklist.`;
+  mode.textContent = plan.activeType ? `${plan.activeType} active` : "Prepared";
+  mode.classList.toggle("danger-pill", Boolean(plan.activeType));
+
+  peopleList.innerHTML = plan.peoplePets
+    .map(
+      (person) => `
+        <button class="setup-item ${person.safe ? "done" : "warning"}" type="button" data-toggle-safe="${person.id}">
+          <span>${person.safe ? "✓" : "!"}</span>
+          <strong>${e(person.name)}</strong>
+          <em>${e(person.role)}</em>
+        </button>
+      `,
+    )
+    .join("");
+
+  checklist.innerHTML = plan.checklist
+    .map(
+      (item) => `
+        <button class="list-row ${item.done ? "done" : ""}" type="button" data-toggle-emergency-task="${item.id}">
+          <span>${item.done ? "✓" : "○"}</span>
+          <strong>${e(item.text)}</strong>
+        </button>
+      `,
+    )
+    .join("");
+
+  movement.innerHTML = plan.animalMovement
+    .map(
+      (item) => `
+        <button class="list-row ${item.done ? "done" : ""}" type="button" data-toggle-movement-task="${item.id}">
+          <span>${item.done ? "✓" : "○"}</span>
+          <strong>${e(item.text)}</strong>
+        </button>
+      `,
+    )
+    .join("");
+
+  contacts.innerHTML = state.contacts
+    .filter((contact) => ["Vet", "Farm Sitter", "Emergency"].includes(contact.type))
+    .map(
+      (contact) => `
+        <div>
+          <strong>${e(contact.name)}</strong>
+          <span>${e(contact.type)} · Shared with records and emergency plan</span>
+        </div>
+      `,
+    )
+    .join("");
+}
+
 function renderWeather() {
   const summary = $("#weatherSummary");
   const temp = $("#weatherTemp");
@@ -638,25 +969,70 @@ function renderWeather() {
     .join("");
 }
 
+function getPinInitial(type) {
+  const initials = {
+    "Trading Post": "TP",
+    "Farm Stand": "FS",
+    Outpost: "OP",
+    Homestead: "✦",
+    Swap: "SW",
+    Event: "EV",
+    Service: "SV",
+  };
+  return initials[type] || type.slice(0, 2).toUpperCase();
+}
+
 function renderPins() {
   const list = $("#pinList");
+  const canvas = $("#mapCanvasPreview");
   if (!list) return;
   const filter = $("#pinTypeFilter")?.value || "all";
   const pins = filter === "all" ? state.pins : state.pins.filter((pin) => pin.type === filter);
+  if (canvas) {
+    const positions = [
+      ["28%", "34%"],
+      ["66%", "52%"],
+      ["46%", "76%"],
+      ["76%", "28%"],
+      ["18%", "68%"],
+    ];
+    canvas.querySelectorAll(".map-pin-button").forEach((pin) => pin.remove());
+    pins.forEach((pin, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "map-pin-button";
+      button.dataset.focusPin = pin.id;
+      button.textContent = getPinInitial(pin.type);
+      button.style.left = positions[index % positions.length][0];
+      button.style.top = positions[index % positions.length][1];
+      canvas.appendChild(button);
+    });
+  }
   list.innerHTML = pins
     .map(
       (pin) => `
-        <article class="local-card">
+        <article class="local-card" id="pin-card-${e(pin.id)}">
           <div class="message-meta">
-            <span>${e(pin.type)}</span>
+            <span><strong class="pin-initial">${e(getPinInitial(pin.type))}</strong> ${e(pin.type)}</span>
             <span>${pin.saved ? "Saved" : "Local"}</span>
           </div>
           <h3>${e(pin.name)}</h3>
           <p class="stand-location">${e(pin.location)}</p>
           <p>${e(pin.detail)}</p>
-          <button class="button compact secondary" type="button" data-save-pin="${pin.id}">
-            ${pin.saved ? "Unsave Pin" : "Save Pin"}
-          </button>
+          <div class="mini-inventory">
+            ${(pin.inventory || []).map((item) => `<span>${e(item)}</span>`).join("")}
+          </div>
+          <div class="button-row">
+            <button class="button compact secondary" type="button" data-save-pin="${pin.id}">
+              ${pin.saved ? "Unsave Pin" : "Save Pin"}
+            </button>
+            <button class="button compact secondary" type="button" data-visit-pin="${pin.id}">
+              ${pin.type === "Trading Post" ? "Visit Trading Post" : pin.type === "Farm Stand" ? "Visit Farm Stand" : "View Profile"}
+            </button>
+            <button class="button compact secondary" type="button" data-open-message-contact="seller-${e(pin.seller || pin.name)}">
+              Message
+            </button>
+          </div>
         </article>
       `,
     )
@@ -668,23 +1044,58 @@ function renderListings() {
   if (!list) return;
   const search = ($("#listingSearch")?.value || "").trim().toLowerCase();
   const listings = state.listings.filter((listing) =>
-    `${listing.category} ${listing.title} ${listing.location} ${listing.detail}`.toLowerCase().includes(search),
+    `${listing.category} ${listing.title} ${listing.location} ${listing.detail} ${listing.seller || ""}`.toLowerCase().includes(search),
   );
   list.innerHTML = listings
     .map(
       (listing) => `
         <article class="market-card">
+          ${listing.photo ? `<img class="listing-photo" src="${e(listing.photo)}" alt="" />` : ""}
           <div class="message-meta">
             <span>${e(listing.category)}</span>
             <span>${listing.saved ? "Saved" : "Open"}</span>
           </div>
           <h3>${e(listing.title)}</h3>
+          <p class="seller-line">${e(listing.seller || "Homestead seller")}</p>
           <p class="stand-location">${e(listing.location)}</p>
           <strong>${e(listing.price)}</strong>
           <p>${e(listing.detail)}</p>
-          <button class="button compact secondary" type="button" data-save-listing="${listing.id}">
-            ${listing.saved ? "Unsave Listing" : "Save Listing"}
-          </button>
+          <div class="button-row listing-actions">
+            <button class="button compact secondary" type="button" data-save-listing="${listing.id}">
+              ${listing.saved ? "Saved Seller" : "Save Seller"}
+            </button>
+            <button class="button compact secondary" type="button" data-open-message-contact="seller-${e(listing.seller || listing.id)}">
+              Message
+            </button>
+            <a class="button compact secondary" href="tel:${e(listing.phone || "")}">Call</a>
+            <a class="button compact secondary" href="sms:${e(listing.phone || "")}">Text</a>
+            <a class="button compact secondary" href="mailto:${e(listing.email || "")}">Email</a>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderOutpost() {
+  const name = $("#outpostProfileName");
+  const detail = $("#outpostProfileDetail");
+  const list = $("#outpostCardList");
+  if (!name || !detail || !list) return;
+  name.textContent = `${state.profile.displayName} Outpost`;
+  detail.textContent = `${state.profile.area}. This website preview reuses profile details so Outpost listings do not need duplicate manual entry.`;
+  const cards = [
+    ["Farm Stand", "Public stand profile, inventory summary, and visit/message actions."],
+    ["Trading Post", "Listings can reuse Farm Stand, Workshop, and livestock record details."],
+    ["Services", "Farrier, farm sitter, classes, farmhand, or local business listings."],
+  ];
+  list.innerHTML = cards
+    .map(
+      ([title, body]) => `
+        <article class="market-card">
+          <div class="message-meta"><span>Outpost</span><span>Connected</span></div>
+          <h3>${e(title)}</h3>
+          <p>${e(body)}</p>
         </article>
       `,
     )
@@ -724,6 +1135,7 @@ function renderAnimals() {
   board.innerHTML = animals
     .map((animal) => {
       const lastNote = animal.notes?.[0];
+      const contact = state.contacts.find((item) => item.id === animal.contactId);
       return `
         <article class="animal-card">
           <div class="message-meta">
@@ -732,6 +1144,7 @@ function renderAnimals() {
           </div>
           <h3>${e(animal.name)}</h3>
           <p class="stand-location">${e(animal.tag || "No tag")}</p>
+          ${contact ? `<p class="seller-line">Contact: ${e(contact.name)} (${e(contact.type)})</p>` : ""}
           <p>${lastNote ? e(lastNote.body) : "No notes yet."}</p>
           <form class="inline-form note-form" data-animal-note="${animal.id}">
             <select name="type">
@@ -760,6 +1173,8 @@ function renderAnimals() {
     ["Pantry Log", "Stored goods, preservation, supply reminders"],
     ["Workshop Log", "Equipment, tools, repairs, project notes"],
     ["Finance Log", "Receipts, sales, expenses, market totals"],
+    ["Emergency Plan", "Shared property plans, safe checklists, contacts"],
+    ["Sales Records", "Livestock sales pages by animal category"],
   ];
   areas.innerHTML = recordAreas
     .map(
@@ -788,11 +1203,93 @@ function renderRecipes() {
         <article class="recipe-card">
           <div class="message-meta">
             <span>${e(recipe.type)}</span>
-            <span>${e(recipe.ingredients || "No ingredients listed")}</span>
+            <span>${e(recipe.source || "Your Recipe")}</span>
           </div>
           <h3>${e(recipe.title)}</h3>
+          <p class="stand-location">${e(recipe.ingredients || "No ingredients listed")}</p>
           <p>${e(recipe.notes)}</p>
+          <div class="reaction-row" aria-label="Public recipe actions">
+            <span>♡ Like</span>
+            <span>☆ Save</span>
+            <span>Duplicate</span>
+          </div>
           <button class="button compact secondary" type="button" data-delete-recipe="${recipe.id}">Remove</button>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderNotebook() {
+  const list = $("#notebookList");
+  const contactList = $("#contactList");
+  const contactCount = $("#contactCount");
+  const projectSelect = $("#notebookProject");
+  const animalContact = $("#animalContact");
+  if (!list) return;
+
+  if (projectSelect) {
+    projectSelect.innerHTML = [
+      `<option value="">No workshop project</option>`,
+      ...state.workshopProjects.map(
+        (project) => `<option value="${e(project.id)}">${e(project.title)} (${e(project.status)})</option>`,
+      ),
+    ].join("");
+  }
+
+  if (animalContact) {
+    animalContact.innerHTML = [
+      `<option value="">No contact linked</option>`,
+      ...state.contacts.map((contact) => `<option value="${e(contact.id)}">${e(contact.name)} - ${e(contact.type)}</option>`),
+    ].join("");
+  }
+
+  if (contactCount) contactCount.textContent = String(state.contacts.length);
+  if (contactList) {
+    contactList.innerHTML = state.contacts
+      .map(
+        (contact) => `
+          <div>
+            <strong>${e(contact.name)}</strong>
+            <span>${e(contact.type)} · ${e(contact.detail || "Reusable app contact")}</span>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  const grouped = state.notebookEntries.reduce((groups, entry) => {
+    const title = entry.title || "Notebook";
+    groups[title] = groups[title] || [];
+    groups[title].push(entry);
+    return groups;
+  }, {});
+
+  list.innerHTML = Object.entries(grouped)
+    .map(
+      ([title, entries]) => `
+        <article class="tool-panel notebook-group">
+          <div class="panel-title-row">
+            <div>
+              <div class="eyebrow">${e(entries.length)} saved notes</div>
+              <h3>${e(title)}</h3>
+            </div>
+            <button class="button compact secondary" type="button" data-print-notebook="${e(title)}">Print</button>
+          </div>
+          <div class="notebook-entry-list">
+            ${entries
+              .map((entry) => {
+                const project = state.workshopProjects.find((item) => item.id === entry.projectId);
+                return `
+                  <div class="notebook-entry">
+                    <strong>${e(entry.path || "General")}</strong>
+                    <p>${e(entry.body)}</p>
+                    <span>${e(entry.source || "Notebook")}${project ? ` · Linked project: ${e(project.title)}` : ""}</span>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
         </article>
       `,
     )
@@ -826,18 +1323,22 @@ function renderConnectionStatus() {
 }
 
 function renderAll() {
+  renderFarmStandSetup();
   renderTodos();
   renderChores();
   renderAlmanacEvents();
   renderStands();
   renderMessages();
+  renderEmergencyPlan();
   renderWeather();
   renderAlerts();
   renderPins();
   renderListings();
+  renderOutpost();
   renderPosts();
   renderAnimals();
   renderRecipes();
+  renderNotebook();
   renderProfile();
   renderConnectionStatus();
 }
@@ -866,6 +1367,65 @@ document.addEventListener("click", async (event) => {
     });
   }
 
+  if (target.dataset.openMessageContact) {
+    const contacts = getMessageContacts();
+    let contact = contacts.find((item) => item.id === target.dataset.openMessageContact);
+    if (!contact && target.dataset.openMessageContact.startsWith("seller-")) {
+      const sellerName = target.dataset.openMessageContact.replace("seller-", "");
+      const listing = state.listings.find((item) => item.seller === sellerName);
+      const pin = state.pins.find((item) => item.seller === sellerName || item.name === sellerName);
+      contact = {
+        id: target.dataset.openMessageContact,
+        name: sellerName,
+        detail: listing?.location || pin?.location || "Local seller",
+        category: listing ? "Trading Post" : pin?.type || "Porch Light Map",
+      };
+    }
+    if (contact) {
+      setComposeDraft(contact);
+      $("#messageDialog")?.showModal();
+    }
+  }
+
+  if (target.id === "closeMessageDialog") {
+    const saved = saveCurrentMessageDraft({ quiet: true });
+    $("#messageDialog")?.close();
+    if (saved) {
+      renderMessages();
+      notify("Draft saved.");
+    }
+  }
+
+  if (target.id === "saveMessageDraft") {
+    saveCurrentMessageDraft();
+    renderMessages();
+  }
+
+  if (target.dataset.focusPin) {
+    const card = $(`#pin-card-${CSS.escape(target.dataset.focusPin)}`);
+    card?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    card?.classList.add("focus-card");
+    window.setTimeout(() => card?.classList.remove("focus-card"), 1200);
+  }
+
+  if (target.dataset.visitPin) {
+    const pin = state.pins.find((item) => item.id === target.dataset.visitPin);
+    if (!pin) return;
+    if (pin.type === "Trading Post") {
+      activateTab("trading-post");
+      const search = $("#listingSearch");
+      if (search) search.value = pin.seller || pin.name;
+      renderListings();
+      notify("Trading Post filtered to that seller.");
+    } else if (pin.type === "Farm Stand") {
+      activateTab("farm-stand");
+      notify("Farm Stand profile opened.");
+    } else {
+      activateTab("outpost");
+      notify("Outpost profile opened.");
+    }
+  }
+
   if (target.dataset.toggleTodo) {
     state.todos = state.todos.map((todo) =>
       todo.id === target.dataset.toggleTodo ? { ...todo, done: !todo.done } : todo,
@@ -882,6 +1442,52 @@ document.addEventListener("click", async (event) => {
     renderAll();
   }
 
+  if (target.dataset.toggleSetup) {
+    state.farmStandSetup = state.farmStandSetup.map((task) =>
+      task.id === target.dataset.toggleSetup ? { ...task, done: !task.done } : task,
+    );
+    saveState();
+    renderFarmStandSetup();
+  }
+
+  if (target.id === "emergencyNowButton") {
+    state.emergencyPlan.activeType = state.emergencyPlan.activeType || "Fire";
+    saveState();
+    renderAll();
+    notify("Emergency plan opened. Review the shared checklist.");
+  }
+
+  if (target.dataset.emergencyType) {
+    state.emergencyPlan.activeType = target.dataset.emergencyType;
+    saveState();
+    renderAll();
+    notify(`${target.dataset.emergencyType} plan selected.`);
+  }
+
+  if (target.dataset.toggleSafe) {
+    state.emergencyPlan.peoplePets = state.emergencyPlan.peoplePets.map((person) =>
+      person.id === target.dataset.toggleSafe ? { ...person, safe: !person.safe } : person,
+    );
+    saveState();
+    renderAll();
+  }
+
+  if (target.dataset.toggleEmergencyTask) {
+    state.emergencyPlan.checklist = state.emergencyPlan.checklist.map((item) =>
+      item.id === target.dataset.toggleEmergencyTask ? { ...item, done: !item.done } : item,
+    );
+    saveState();
+    renderAll();
+  }
+
+  if (target.dataset.toggleMovementTask) {
+    state.emergencyPlan.animalMovement = state.emergencyPlan.animalMovement.map((item) =>
+      item.id === target.dataset.toggleMovementTask ? { ...item, done: !item.done } : item,
+    );
+    saveState();
+    renderAll();
+  }
+
   if (target.dataset.deleteAlmanac) {
     state.almanacEvents = state.almanacEvents.filter((event) => event.id !== target.dataset.deleteAlmanac);
     saveState();
@@ -892,6 +1498,37 @@ document.addEventListener("click", async (event) => {
     state.selectedStandId = target.dataset.viewStand;
     saveState();
     renderStands();
+  }
+
+  if (target.id === "addItemToggle") {
+    const form = $("#itemForm");
+    if (form) {
+      form.hidden = !form.hidden;
+      if (!form.hidden) $("#itemName")?.focus();
+    }
+  }
+
+  if (target.dataset.shareStand) {
+    const stand = state.stands.find((item) => item.id === target.dataset.shareStand);
+    if (stand) {
+      const availableItems = stand.items
+        .filter((item) => Number(item.quantity) > 0)
+        .map((item) => `${item.name} (${item.quantity} ${item.unit || "available"})`)
+        .join(", ");
+      state.listings.unshift({
+        id: `listing-${Date.now()}`,
+        category: "Farm Stand",
+        title: stand.name,
+        location: stand.location,
+        price: "Contact stand",
+        detail: availableItems || stand.notes,
+        saved: false,
+        seller: stand.name,
+      });
+      saveState();
+      renderAll();
+      notify("Shared to Trading Post.");
+    }
   }
 
   if (target.dataset.adjustItem) {
@@ -923,18 +1560,62 @@ document.addEventListener("click", async (event) => {
   }
 
   if (target.dataset.saveListing) {
+    const listing = state.listings.find((item) => item.id === target.dataset.saveListing);
     state.listings = state.listings.map((listing) =>
       listing.id === target.dataset.saveListing ? { ...listing, saved: !listing.saved } : listing,
     );
     saveState();
-    renderListings();
+    renderAll();
+    notify(listing?.saved ? "Seller removed from saved list." : "Seller saved.");
   }
 
   if (target.dataset.deleteRecipe) {
+    if (!window.confirm("Delete this recipe? Choose OK to remove it from this preview.")) return;
     state.recipes = state.recipes.filter((recipe) => recipe.id !== target.dataset.deleteRecipe);
     saveState();
     renderRecipes();
     notify("Recipe removed.");
+  }
+
+  if (target.dataset.printNotebook) {
+    const title = target.dataset.printNotebook;
+    const entries = state.notebookEntries.filter((entry) => entry.title === title);
+    const printable = window.open("", "_blank", "noopener,noreferrer");
+    if (!printable) {
+      notify("Pop-up blocked. Allow pop-ups to print notebook notes.");
+      return;
+    }
+    printable.document.write(`
+      <html>
+        <head>
+          <title>${e(title)} Notes</title>
+          <style>
+            body { font-family: system-ui, sans-serif; color: #22251f; padding: 24px; }
+            h1 { margin-bottom: 8px; }
+            article { border-top: 1px solid #d8d9ce; padding: 14px 0; }
+            strong, span { display: block; }
+            span { color: #62675c; margin-top: 6px; }
+          </style>
+        </head>
+        <body>
+          <h1>${e(title)}</h1>
+          ${entries
+            .map((entry) => {
+              const project = state.workshopProjects.find((item) => item.id === entry.projectId);
+              return `
+                <article>
+                  <strong>${e(entry.path || "General")}</strong>
+                  <p>${e(entry.body)}</p>
+                  <span>${project ? `Linked workshop project: ${e(project.title)}` : e(entry.source || "Notebook")}</span>
+                </article>
+              `;
+            })
+            .join("")}
+        </body>
+      </html>
+    `);
+    printable.document.close();
+    printable.print();
   }
 
   if (target.id === "setupToggle") {
@@ -973,14 +1654,20 @@ document.addEventListener("click", async (event) => {
     renderAll();
   }
 
-  if (target.id === "editStandName") {
+  if (target.id === "editStandButton" || target.id === "editStandName") {
     const stand = state.stands.find((item) => item.id === state.selectedStandId);
     const nextName = window.prompt("Stand name", stand.name);
     if (nextName?.trim()) {
       stand.name = nextName.trim();
-      saveState();
-      renderStands();
     }
+    const nextLocation = window.prompt("Stand location", stand.location);
+    if (nextLocation?.trim()) {
+      stand.location = nextLocation.trim();
+    }
+    const nextNotes = window.prompt("Farm Stand description", stand.notes);
+    if (nextNotes?.trim()) stand.notes = nextNotes.trim();
+    saveState();
+    renderStands();
   }
 
   if (target.id === "editStandLocation") {
@@ -991,6 +1678,11 @@ document.addEventListener("click", async (event) => {
       saveState();
       renderStands();
     }
+  }
+
+  if (target.id === "syncOutpostButton") {
+    notify("Outpost preview synced from homestead profile.");
+    renderOutpost();
   }
 
   if (target.id === "exportDemoData") {
@@ -1105,8 +1797,18 @@ document.addEventListener("submit", async (event) => {
   }
 
   if (event.target.id === "messageForm") {
-    const file = $("#composePhoto").files?.[0];
-    const photo = file ? await fileToDataUrl(file) : "";
+    const files = Array.from($("#composePhoto").files || []);
+    const photos = await Promise.all(files.map((file) => fileToDataUrl(file)));
+    const recipientId = $("#composeRecipient").value;
+    const contact = getMessageContacts().find((item) => item.id === recipientId);
+    if (!$("#composeSubject").value.trim()) {
+      notify("Add a subject before sending so the message can be sorted and found later.");
+      return;
+    }
+    if (!$("#composeBody").value.trim()) {
+      notify("Add a message before sending.");
+      return;
+    }
     state.messages.unshift({
       id: `msg-${Date.now()}`,
       category: $("#composeCategory").value,
@@ -1114,11 +1816,16 @@ document.addEventListener("submit", async (event) => {
       body: $("#composeBody").value.trim(),
       createdAt: new Date().toISOString(),
       unread: true,
-      photo,
+      recipientId,
+      recipientName: contact?.name || "Post Box contact",
+      photos,
     });
+    state.messageDrafts = state.messageDrafts.filter((draft) => draft.recipientId !== recipientId);
     event.target.reset();
+    $("#messageDialog")?.close();
     saveState();
     renderMessages();
+    notify("Message sent.");
   }
 
   if (event.target.id === "frontPorchForm") {
@@ -1141,6 +1848,7 @@ document.addEventListener("submit", async (event) => {
       species: $("#animalSpecies").value,
       tag: $("#animalTag").value.trim(),
       status: "Active",
+      contactId: $("#animalContact")?.value || "",
       notes: $("#animalNote").value.trim()
         ? [
             {
@@ -1155,6 +1863,34 @@ document.addEventListener("submit", async (event) => {
     event.target.reset();
     saveState();
     renderAll();
+  }
+
+  if (event.target.id === "notebookForm") {
+    state.notebookEntries.unshift({
+      id: `notebook-${Date.now()}`,
+      title: $("#notebookTitle").value.trim(),
+      path: $("#notebookPath").value.trim(),
+      body: $("#notebookBody").value.trim(),
+      projectId: $("#notebookProject").value,
+      source: "Notebook",
+    });
+    event.target.reset();
+    saveState();
+    renderAll();
+    notify("Notebook note saved.");
+  }
+
+  if (event.target.id === "contactForm") {
+    state.contacts.push({
+      id: `contact-${Date.now()}`,
+      name: $("#contactName").value.trim(),
+      type: $("#contactType").value,
+      detail: "Available across logs, emergency plans, and messages.",
+    });
+    event.target.reset();
+    saveState();
+    renderAll();
+    notify("Contact saved.");
   }
 
   if (event.target.dataset.animalNote) {
@@ -1190,10 +1926,12 @@ document.addEventListener("submit", async (event) => {
       type: $("#recipeType").value,
       ingredients: $("#recipeIngredients").value.trim(),
       notes: $("#recipeNotes").value.trim(),
+      source: "Your Recipe",
     });
     event.target.reset();
     saveState();
     renderRecipes();
+    notify("Recipe saved.");
   }
 
   if (event.target.id === "profileForm") {
@@ -1269,7 +2007,10 @@ document.addEventListener("change", (event) => {
   if (event.target.id === "messageCategory" || event.target.id === "messageSort") renderMessages();
   if (event.target.id === "pinTypeFilter") renderPins();
   if (event.target.id === "postTopicFilter") renderPosts();
-  if (event.target.id === "animalSpeciesFilter") renderAnimals();
+  if (event.target.id === "animalSpeciesFilter") {
+    renderAnimals();
+    renderNotebook();
+  }
 });
 
 document.addEventListener("change", (event) => {

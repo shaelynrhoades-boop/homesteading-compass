@@ -59,11 +59,14 @@
           <button type="button" data-menu-tab="almanac">Almanac</button>
           <button type="button" data-menu-tab="alerts">Weather & Alerts</button>
           <button type="button" data-menu-tab="farm-stand">Farm Stand</button>
+          <button type="button" data-menu-tab="emergency-plan">Emergency Plan</button>
           <button type="button" data-menu-tab="post-box">Post Box</button>
           <button type="button" data-menu-tab="log-book">Log Book</button>
           <button type="button" data-menu-tab="recipe-book">Recipe Book</button>
+          <button type="button" data-menu-tab="notebook">Notebook & Contacts</button>
           <button type="button" data-menu-tab="porch-light">Porch Light Map</button>
           <button type="button" data-menu-tab="trading-post">Trading Post</button>
+          <button type="button" data-menu-tab="outpost">Outpost</button>
           <button type="button" data-menu-tab="front-porch">Front Porch</button>
           <button type="button" data-menu-tab="account">Account</button>
         </div>
@@ -74,10 +77,11 @@
       <section class="hero app-hero">
         <div class="hero-copy">
           <div class="eyebrow">The Homesteading Compass</div>
-          <h1>Homestead Dashboard</h1>
+          <h1>Homestead Command Center</h1>
           <p class="lead">
-            Open a tool from the menu and work inside one organized preview.
-            Sign in from Account when you want Supabase sync.
+            Preview the updated app tools for records, emergency planning,
+            Notebook and Contacts, local selling, recipes, alerts, and shared
+            homestead work.
           </p>
           <div class="actions">
             <a class="button" href="#app">Open App Preview</a>
@@ -121,11 +125,14 @@
           <button class="tab-button active" type="button" data-tab="almanac">Almanac</button>
           <button class="tab-button" type="button" data-tab="alerts">Alerts</button>
           <button class="tab-button" type="button" data-tab="farm-stand">Farm Stand</button>
+          <button class="tab-button" type="button" data-tab="emergency-plan">Emergency</button>
           <button class="tab-button" type="button" data-tab="post-box">Post Box</button>
           <button class="tab-button" type="button" data-tab="log-book">Log Book</button>
           <button class="tab-button" type="button" data-tab="recipe-book">Recipes</button>
+          <button class="tab-button" type="button" data-tab="notebook">Notebook</button>
           <button class="tab-button" type="button" data-tab="porch-light">Map</button>
           <button class="tab-button" type="button" data-tab="trading-post">Trading Post</button>
+          <button class="tab-button" type="button" data-tab="outpost">Outpost</button>
           <button class="tab-button" type="button" data-tab="front-porch">Front Porch</button>
           <button class="tab-button" type="button" data-tab="account">Account</button>
         </div>
@@ -143,12 +150,7 @@
                 </button>
               </div>
               <p class="muted">Keep the day’s work, alerts, and reminders close at hand.</p>
-              <div class="setup-list" id="setupList" hidden>
-                <div class="setup-item done"><span>✓</span> Farm profile started</div>
-                <div class="setup-item warning"><span>!</span> Add Farm Stand location</div>
-                <div class="setup-item warning"><span>!</span> Add low-stock limits</div>
-                <div class="setup-item done"><span>✓</span> Post Box ready</div>
-              </div>
+              <div class="setup-list" id="setupList" hidden></div>
             </article>
 
             <article class="tool-panel">
@@ -230,7 +232,7 @@
           <div class="app-toolbar compact-toolbar">
             <div>
               <div class="eyebrow">Farm Stand</div>
-              <h3>Stand Manager</h3>
+              <h3>Stands</h3>
             </div>
             <button class="button compact" type="button" id="addStandButton">Create New Stand</button>
           </div>
@@ -258,6 +260,8 @@
               <option>Chore List</option>
               <option>Almanac</option>
               <option>Cattle Log</option>
+              <option>Emergency Plan</option>
+              <option>Notebook</option>
               <option>Porch Light Map</option>
               <option>Support</option>
             </select>
@@ -269,18 +273,47 @@
           </div>
 
           <div class="postbox-layout">
-            <form class="tool-panel message-compose" id="messageForm">
-              <h3>New Message</h3>
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">New Message</div>
+                  <h3>Contacts</h3>
+                </div>
+                <span class="count-pill" id="postboxContactCount">0</span>
+              </div>
+              <p class="muted">
+                App Support stays pinned. Saved sellers, saved Outpost profiles,
+                and previously messaged contacts show below.
+              </p>
+              <div class="connection-list postbox-contact-list" id="postboxContactList"></div>
+            </article>
+            <div class="message-list" id="messageList"></div>
+          </div>
+          <dialog class="message-dialog" id="messageDialog">
+            <form class="message-compose" id="messageForm">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Message</div>
+                  <h3 id="messageDialogTitle">New Message</h3>
+                </div>
+                <button class="icon-button" type="button" id="closeMessageDialog" aria-label="Close message">×</button>
+              </div>
+              <input id="composeRecipient" type="hidden" />
               <label>
                 Category
                 <select id="composeCategory">
                   <option>Support</option>
-                  <option>Farm Stand</option>
-                  <option>Farm Alerts</option>
-                  <option>Chore List</option>
                   <option>Almanac</option>
                   <option>Cattle Log</option>
+                  <option>Chore List</option>
+                  <option>Emergency Plan</option>
+                  <option>Farm Alerts</option>
+                  <option>Farm Stand</option>
+                  <option>Notebook</option>
+                  <option>Outpost</option>
                   <option>Porch Light Map</option>
+                  <option>Recipe Book</option>
+                  <option>Trading Post</option>
                 </select>
               </label>
               <label>
@@ -289,15 +322,69 @@
               </label>
               <label>
                 Message
-                <textarea id="composeBody" rows="4" placeholder="What happened?" required></textarea>
+                <textarea id="composeBody" rows="5" placeholder="Write your message" required></textarea>
               </label>
               <label>
-                Screenshot or photo
-                <input id="composePhoto" type="file" accept="image/*" />
+                Photos
+                <input id="composePhoto" type="file" accept="image/*" multiple />
               </label>
-              <button class="button" type="submit">Send Demo Message</button>
+              <div class="button-row">
+                <button class="button" type="submit">Send Message</button>
+                <button class="button secondary" type="button" id="saveMessageDraft">Save Draft</button>
+              </div>
             </form>
-            <div class="message-list" id="messageList"></div>
+          </dialog>
+        </section>
+
+        <section class="tab-panel" id="panel-emergency-plan">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Emergency Plan</div>
+              <h3>Shared Property Plan</h3>
+            </div>
+            <button class="button compact danger" type="button" id="emergencyNowButton">
+              Emergency Now
+            </button>
+          </div>
+          <div class="emergency-layout">
+            <article class="tool-panel emergency-card">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Property</div>
+                  <h3 id="emergencyPropertyName">Homestead Plan</h3>
+                </div>
+                <span class="count-pill" id="emergencyMode">Prepared</span>
+              </div>
+              <p class="muted" id="emergencyPropertyDetail"></p>
+              <div class="emergency-actions">
+                <button class="button compact danger" type="button" data-emergency-type="Fire">Fire</button>
+                <button class="button compact secondary" type="button" data-emergency-type="Flood">Flood</button>
+                <button class="button compact secondary" type="button" data-emergency-type="Blizzard">Blizzard</button>
+                <button class="button compact secondary" type="button" data-emergency-type="Storm">Storm</button>
+              </div>
+            </article>
+            <article class="tool-panel">
+              <div class="eyebrow">People and Pets</div>
+              <h3>Accounted For</h3>
+              <div class="connection-list" id="emergencyPeopleList"></div>
+            </article>
+          </div>
+          <div class="emergency-grid">
+            <article class="tool-panel">
+              <div class="eyebrow">What To Do</div>
+              <h3>Checklist</h3>
+              <div class="stack-list" id="emergencyChecklist"></div>
+            </article>
+            <article class="tool-panel">
+              <div class="eyebrow">Animal Movement</div>
+              <h3>Movement Plan</h3>
+              <div class="stack-list" id="animalMovementPlan"></div>
+            </article>
+            <article class="tool-panel">
+              <div class="eyebrow">Contacts</div>
+              <h3>Emergency Contacts</h3>
+              <div class="connection-list" id="emergencyContactList"></div>
+            </article>
           </div>
         </section>
 
@@ -396,11 +483,90 @@
                 Quick note
                 <textarea id="animalNote" rows="3" placeholder="Health, breeding, feed, production, or care note"></textarea>
               </label>
+              <label>
+                Contact
+                <select id="animalContact">
+                  <option value="">No contact linked</option>
+                </select>
+              </label>
               <button class="button" type="submit">Save Animal</button>
             </form>
             <div class="animal-board" id="animalBoard"></div>
           </div>
           <div class="record-area-grid" id="recordAreaGrid"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-notebook">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Notebook & Contacts</div>
+              <h3>Organized Notes</h3>
+            </div>
+            <button class="button compact secondary" type="button" data-jump-tab="log-book">
+              Open Log Book
+            </button>
+          </div>
+          <div class="notebook-layout">
+            <form class="tool-panel settings-form" id="notebookForm">
+              <h3>Add Notebook Entry</h3>
+              <label>
+                Notebook
+                <input id="notebookTitle" type="text" placeholder="Homestead Goals" required />
+              </label>
+              <label>
+                Category path
+                <input id="notebookPath" type="text" placeholder="Livestock > Goats > Shelter" />
+              </label>
+              <label>
+                Note
+                <textarea
+                  id="notebookBody"
+                  rows="5"
+                  placeholder="Add bullets, checklist items, field guide notes, or project ideas"
+                  required
+                ></textarea>
+              </label>
+              <label>
+                Link workshop project
+                <select id="notebookProject"></select>
+              </label>
+              <button class="button" type="submit">Save Note</button>
+            </form>
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Contacts</div>
+                  <h3>Shared Contact Book</h3>
+                </div>
+                <span class="count-pill" id="contactCount">0</span>
+              </div>
+              <p class="muted">
+                Contacts can be reused in livestock records, emergency plans,
+                Post Box, and seller profiles.
+              </p>
+              <p class="muted">
+                Field Guide notes can be saved into the category path where they
+                belong instead of creating loose notes.
+              </p>
+              <div class="transfer-note">
+                <strong>Field Guide transfer</strong>
+                <span>Highlight or copy only the sentence you want, choose a notebook path, and save it permanently with the rest of your notes.</span>
+              </div>
+              <form class="inline-form contact-form" id="contactForm">
+                <input id="contactName" type="text" placeholder="Vet, sitter, farrier, buyer" required />
+                <select id="contactType">
+                  <option>Vet</option>
+                  <option>Farrier</option>
+                  <option>Farm Sitter</option>
+                  <option>Seller</option>
+                  <option>Emergency</option>
+                </select>
+                <button class="button compact" type="submit">Add</button>
+              </form>
+              <div class="connection-list" id="contactList"></div>
+            </article>
+          </div>
+          <div class="notebook-list" id="notebookList"></div>
         </section>
 
         <section class="tab-panel" id="panel-recipe-book">
@@ -452,17 +618,17 @@
             <select class="compact-select" id="pinTypeFilter">
               <option value="all">All pin types</option>
               <option>Farm Stand</option>
+              <option>Trading Post</option>
+              <option>Outpost</option>
+              <option>Homestead</option>
               <option>Swap</option>
               <option>Event</option>
               <option>Service</option>
             </select>
           </div>
           <div class="map-preview-layout">
-            <div class="map-canvas-preview" aria-label="Porch Light Map preview">
+            <div class="map-canvas-preview" id="mapCanvasPreview" aria-label="Porch Light Map preview">
               <img src="/assets/icon-porch-light-map.png" alt="" />
-              <span class="map-dot dot-one"></span>
-              <span class="map-dot dot-two"></span>
-              <span class="map-dot dot-three"></span>
             </div>
             <div class="local-card-list" id="pinList"></div>
           </div>
@@ -477,6 +643,43 @@
             <input class="compact-search" id="listingSearch" type="search" placeholder="Search listings" />
           </div>
           <div class="market-grid" id="listingList"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-outpost">
+          <div class="app-toolbar compact-toolbar">
+            <div>
+              <div class="eyebrow">Outpost</div>
+              <h3>Public Profile and Services</h3>
+            </div>
+            <button class="button compact" type="button" id="syncOutpostButton">Sync From Homestead Profile</button>
+          </div>
+          <div class="outpost-layout">
+            <article class="tool-panel">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">My Profile</div>
+                  <h3 id="outpostProfileName">Homestead Outpost</h3>
+                </div>
+                <span class="count-pill">Public</span>
+              </div>
+              <p class="muted" id="outpostProfileDetail"></p>
+              <div class="button-row">
+                <button class="button compact secondary" type="button" data-jump-tab="trading-post">Trading Post</button>
+                <button class="button compact secondary" type="button" data-jump-tab="porch-light">Porch Light Map</button>
+                <button class="button compact secondary" type="button" data-open-message-contact="support">Message Admin</button>
+              </div>
+            </article>
+            <article class="tool-panel">
+              <div class="eyebrow">Condensed Forms</div>
+              <h3>What This Page Should Do</h3>
+              <div class="stack-list">
+                <div class="list-row"><span>1</span><strong>Reuse homestead name, city/state, photos, and contact preference.</strong></div>
+                <div class="list-row"><span>2</span><strong>Show only service/profile sections the seller turns on.</strong></div>
+                <div class="list-row"><span>3</span><strong>Send buyers to Post Box instead of duplicate inquiry forms.</strong></div>
+              </div>
+            </article>
+          </div>
+          <div class="market-grid" id="outpostCardList"></div>
         </section>
 
         <section class="tab-panel" id="panel-front-porch">
@@ -525,8 +728,9 @@
               <div class="eyebrow">Account</div>
               <h3>Account & Sync</h3>
               <p class="muted">
-                Sign in with Supabase to save this website preview to your
-                account. Local browser saving still works when signed out.
+                Sign in with Supabase to keep Notebook, recipes, messages,
+                contacts, listings, and emergency plans backed up to your
+                account. Signed-out changes are only stored in this browser.
               </p>
               <form class="settings-form" id="authForm">
                 <label>
@@ -566,6 +770,11 @@
             <article class="tool-panel">
               <div class="eyebrow">Cloud Connection</div>
               <h3>Supabase Sync</h3>
+              <p class="muted">
+                The app uses account-backed saving for permanent records. This
+                website preview shows the same rule clearly: sign in before
+                relying on records across updates or devices.
+              </p>
               <div class="connection-status" id="supabaseStatus" aria-live="polite"></div>
               <div class="data-actions">
                 <button class="button compact" type="button" id="loadCloudData">Load Cloud Data</button>
@@ -597,21 +806,21 @@
           <div class="eyebrow">The Waystation</div>
           <h2>Local tools for neighbors, sellers, and makers.</h2>
           <p>
-            Waystation features help users find local stands, trade goods, share
-            knowledge, list services, and connect through safer in-app contact
-            options.
+            Waystation features help users publish homestead profiles, find
+            local stands, browse seller inventory, message safely in-app, and
+            keep listings connected to records already saved in the app.
           </p>
           <ul class="check-list">
-            <li>Trading Post listings for local goods and livestock.</li>
-            <li>Outpost profiles for homestead services and public offerings.</li>
-            <li>Front Porch Hub for community knowledge and local posts.</li>
-            <li>Porch Light Map for nearby stands, swaps, events, and connections.</li>
+            <li>Trading Post listings can pull from Farm Stand and livestock records.</li>
+            <li>Outpost profiles organize public business/service information.</li>
+            <li>Front Porch Hub supports questions, events, and local knowledge.</li>
+            <li>Porch Light Map groups Farm Stand, Trading Post, Outpost, and homestead pins.</li>
           </ul>
         </div>
         <div class="map-panel">
           <img src="/assets/icon-porch-light-map.png" alt="" />
           <h3>Porch Light Map</h3>
-          <p>Public map pins use the location details a user chooses to publish.</p>
+          <p>Map pins open grouped inventory, seller details, and visit/message actions.</p>
         </div>
       </section>
 
