@@ -3,6 +3,7 @@ let deferredInstallPrompt = null;
 let currentUser = null;
 let cloudSaveTimer = null;
 let appRecordSaveTimer = null;
+let profileContactSaveTimer = null;
 let syncingFromCloud = false;
 let appRecordSyncEnabled = false;
 
@@ -457,6 +458,7 @@ function saveState() {
   window.localStorage.setItem(storageKey, JSON.stringify(state));
   scheduleCloudSave();
   scheduleCentralAppDataSave();
+  scheduleProfileContactSave();
 }
 
 function getSupabaseAdapter() {
@@ -481,6 +483,16 @@ function scheduleCentralAppDataSave() {
   appRecordSaveTimer = window.setTimeout(() => {
     saveCentralAppData({ quiet: true });
   }, 1200);
+}
+
+function scheduleProfileContactSave() {
+  if (syncingFromCloud || !appRecordSyncEnabled) return;
+  const adapter = getSupabaseAdapter();
+  if (!currentUser || !adapter?.saveScopedRecord) return;
+  window.clearTimeout(profileContactSaveTimer);
+  profileContactSaveTimer = window.setTimeout(() => {
+    saveProfileAndContacts({ quiet: true });
+  }, 1600);
 }
 
 async function refreshCurrentUser() {
@@ -858,6 +870,42 @@ function websiteAlmanacToApp(event) {
   };
 }
 
+function websiteContactToApp(contact) {
+  const role = firstText(contact.type, "Contact");
+  const detail = firstText(contact.detail);
+  const phoneMatch = detail.match(/(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+  return {
+    id: String(contact.id),
+    name: firstText(contact.name, "Saved Contact"),
+    role,
+    category: /vet|veterinary/i.test(role)
+      ? "Veterinary Support"
+      : /sitter|family|house/i.test(role)
+        ? "Household & Family"
+        : /haul|transport/i.test(role)
+          ? "Hauling & Transport"
+          : "Local Resources",
+    status: "Primary",
+    phone: phoneMatch?.[0] || "",
+    notes: detail,
+    when: "",
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildProfilePayload(existing = {}) {
+  return {
+    ...existing,
+    displayName: firstText(state.profile.displayName, existing.displayName),
+    name: firstText(state.profile.displayName, existing.name),
+    homesteadName: firstText(state.profile.displayName, existing.homesteadName),
+    area: firstText(state.profile.area, existing.area),
+    location: firstText(state.profile.area, existing.location),
+    tier: firstText(state.profile.tier, existing.tier),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 function buildCentralAppDataPayload(existing = {}) {
   return {
     ...existing,
@@ -896,6 +944,37 @@ async function saveCentralAppData(options = {}) {
     return true;
   } catch {
     if (!options.quiet) notify("Section 1 app records could not be saved.");
+    return false;
+  }
+}
+
+async function saveProfileAndContacts(options = {}) {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.loadScopedRecord || !adapter?.saveScopedRecord) {
+    if (!options.quiet) notify("Supabase profile/contact saving is not available in this website build.");
+    return false;
+  }
+  try {
+    const user = currentUser || (await refreshCurrentUser());
+    if (!user) {
+      if (!options.quiet) notify("Sign in before saving profile and contacts.");
+      return false;
+    }
+    const existingProfile = (await adapter.loadScopedRecord("homestead:profile")) || {};
+    const existingContacts = await adapter.loadScopedRecord("homestead:emergency:contacts");
+    await adapter.saveScopedRecord(
+      "homestead:profile",
+      buildProfilePayload(existingProfile && typeof existingProfile === "object" ? existingProfile : {}),
+    );
+    await adapter.saveScopedRecord(
+      "homestead:emergency:contacts",
+      mergePreservingExisting(asArray(existingContacts), state.contacts.map(websiteContactToApp)),
+    );
+    appRecordSyncEnabled = true;
+    if (!options.quiet) notify("Section 2 profile and contacts saved.");
+    return true;
+  } catch {
+    if (!options.quiet) notify("Section 2 profile and contacts could not be saved.");
     return false;
   }
 }
@@ -2727,6 +2806,10 @@ document.addEventListener("click", async (event) => {
 
   if (target.id === "saveCentralAppData") {
     saveCentralAppData();
+  }
+
+  if (target.id === "saveProfileContacts") {
+    saveProfileAndContacts();
   }
 
   if (target.id === "saveCloudData") {
