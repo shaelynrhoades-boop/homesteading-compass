@@ -2,7 +2,9 @@ const storageKey = "hcWebsitePreviewState";
 let deferredInstallPrompt = null;
 let currentUser = null;
 let cloudSaveTimer = null;
+let appRecordSaveTimer = null;
 let syncingFromCloud = false;
+let appRecordSyncEnabled = false;
 
 const appRecordLabels = {
   "homestead:data": "Recipes, Notebook, Almanac, Trading Post, Outpost",
@@ -454,6 +456,7 @@ function normalizeState(saved) {
 function saveState() {
   window.localStorage.setItem(storageKey, JSON.stringify(state));
   scheduleCloudSave();
+  scheduleCentralAppDataSave();
 }
 
 function getSupabaseAdapter() {
@@ -468,6 +471,16 @@ function scheduleCloudSave() {
   cloudSaveTimer = window.setTimeout(() => {
     saveCloudState({ quiet: true });
   }, 800);
+}
+
+function scheduleCentralAppDataSave() {
+  if (syncingFromCloud || !appRecordSyncEnabled) return;
+  const adapter = getSupabaseAdapter();
+  if (!currentUser || !adapter?.saveScopedRecord) return;
+  window.clearTimeout(appRecordSaveTimer);
+  appRecordSaveTimer = window.setTimeout(() => {
+    saveCentralAppData({ quiet: true });
+  }, 1200);
 }
 
 async function refreshCurrentUser() {
@@ -761,6 +774,132 @@ function buildWebsiteStateFromAppRecords(records) {
   return next;
 }
 
+function mergePreservingExisting(existing, incoming) {
+  const merged = new Map();
+  asArray(existing).forEach((item) => {
+    if (!item || typeof item !== "object") return;
+    const id = String(item.id || item.recordId || `${item.title || item.name || "item"}-${merged.size}`);
+    merged.set(id, { ...item, id });
+  });
+  asArray(incoming).forEach((item) => {
+    if (!item || typeof item !== "object") return;
+    const id = String(item.id || item.recordId || `${item.title || item.name || "item"}-${merged.size}`);
+    merged.set(id, { ...(merged.get(id) || {}), ...item, id });
+  });
+  return [...merged.values()];
+}
+
+function websiteRecipeToApp(recipe) {
+  const existingIngredientText = firstText(recipe.ingredientText, recipe.ingredients);
+  return {
+    id: String(recipe.id),
+    title: firstText(recipe.title, "Untitled Recipe"),
+    category: firstText(recipe.type, recipe.category, "Recipe"),
+    type: firstText(recipe.type, recipe.category, "Recipe"),
+    notes: firstText(recipe.notes),
+    ingredientText: existingIngredientText,
+    lastCooked: recipe.lastCooked || "",
+    source: recipe.source || "Your Recipe",
+    published: Boolean(recipe.published),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function websiteNotebookToApp(note) {
+  return {
+    id: String(note.id),
+    subject: firstText(note.title, "Notebook"),
+    title: firstText(note.title, "Notebook"),
+    category: firstText(note.path, "General"),
+    body: firstText(note.body),
+    linkedWorkshopProjectId: firstText(note.projectId),
+    source: note.source || "Notebook",
+    createdAt: note.createdAt || new Date().toISOString().slice(0, 10),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function websiteListingToApp(listing) {
+  return {
+    id: String(listing.id),
+    title: firstText(listing.title, "Trading Post listing"),
+    category: firstText(listing.category, "Trading Post"),
+    description: firstText(listing.detail),
+    detail: firstText(listing.detail),
+    price: firstText(listing.price),
+    location: firstText(listing.location, state.profile.area),
+    sellerName: firstText(listing.seller, state.profile.displayName),
+    phone: firstText(listing.phone),
+    email: firstText(listing.email),
+    photo: firstText(listing.photo),
+    saved: Boolean(listing.saved),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function websiteNotificationToApp(pref) {
+  return {
+    id: String(pref.id),
+    feature: firstText(pref.feature, pref.id),
+    title: firstText(pref.title, pref.feature, pref.id),
+    detail: firstText(pref.detail),
+    enabled: Boolean(pref.enabled),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function websiteAlmanacToApp(event) {
+  return {
+    id: String(event.id),
+    title: firstText(event.title, "Reminder"),
+    date: firstText(event.date).slice(0, 10),
+    source: firstText(event.source, "Website"),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildCentralAppDataPayload(existing = {}) {
+  return {
+    ...existing,
+    almanacEntries: mergePreservingExisting(existing.almanacEntries, state.almanacEvents.map(websiteAlmanacToApp)),
+    tradingListings: mergePreservingExisting(existing.tradingListings, state.listings.map(websiteListingToApp)),
+    recipes: mergePreservingExisting(existing.recipes, state.recipes.map(websiteRecipeToApp)),
+    publicRecipes: asArray(existing.publicRecipes),
+    notificationPreferences: mergePreservingExisting(
+      existing.notificationPreferences,
+      state.notificationPrefs.map(websiteNotificationToApp),
+    ),
+    quickNotes: mergePreservingExisting(existing.quickNotes, state.notebookEntries.map(websiteNotebookToApp)),
+    outpostListings: asArray(existing.outpostListings),
+  };
+}
+
+async function saveCentralAppData(options = {}) {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.loadScopedRecord || !adapter?.saveScopedRecord) {
+    if (!options.quiet) notify("Supabase app record saving is not available in this website build.");
+    return false;
+  }
+  try {
+    const user = currentUser || (await refreshCurrentUser());
+    if (!user) {
+      if (!options.quiet) notify("Sign in before saving app records.");
+      return false;
+    }
+    const existing = (await adapter.loadScopedRecord("homestead:data")) || {};
+    const payload = buildCentralAppDataPayload(existing && typeof existing === "object" ? existing : {});
+    await adapter.saveScopedRecord("homestead:data", payload);
+    await adapter.saveScopedRecord("homestead:recipe-book:recipes", payload.recipes);
+    await adapter.saveScopedRecord("homestead:trading-listings", payload.tradingListings);
+    appRecordSyncEnabled = true;
+    if (!options.quiet) notify("Section 1 app records saved.");
+    return true;
+  } catch {
+    if (!options.quiet) notify("Section 1 app records could not be saved.");
+    return false;
+  }
+}
+
 async function loadAppRecordsIntoWebsite() {
   const adapter = getSupabaseAdapter();
   if (!adapter?.loadAppRecords) {
@@ -783,6 +922,7 @@ async function loadAppRecordsIntoWebsite() {
     syncingFromCloud = true;
     state = normalizeState({ ...state, ...buildWebsiteStateFromAppRecords(records) });
     window.localStorage.setItem(storageKey, JSON.stringify(state));
+    appRecordSyncEnabled = true;
     renderAll();
     renderAppRecordSummary(records);
     notify(`Loaded ${recordCount} app record groups.`);
@@ -2583,6 +2723,10 @@ document.addEventListener("click", async (event) => {
 
   if (target.id === "loadAppRecords") {
     loadAppRecordsIntoWebsite();
+  }
+
+  if (target.id === "saveCentralAppData") {
+    saveCentralAppData();
   }
 
   if (target.id === "saveCloudData") {
