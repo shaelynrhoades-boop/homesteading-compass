@@ -1287,6 +1287,46 @@ p {
   box-shadow: 0 0 0 2px rgba(76, 119, 68, 0.12);
 }
 
+.message-card-main {
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  text-align: left;
+}
+
+.message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.message-group {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.message-group summary {
+  color: var(--green);
+  font-weight: 800;
+}
+
+.message-group summary span {
+  color: var(--muted);
+  font-size: 14px;
+  margin-left: 6px;
+}
+
+.completed-group {
+  margin-top: 18px;
+  opacity: 0.92;
+}
+
 .message-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1309,6 +1349,33 @@ p {
   border: 1px solid var(--border);
   border-radius: 8px;
   margin: 10px 0;
+}
+
+.large-photo {
+  max-height: 420px;
+  object-fit: contain;
+  background: #ffffff;
+}
+
+.message-read-meta {
+  color: var(--muted);
+  font-weight: 700;
+  margin: 0;
+}
+
+.message-read-body {
+  max-height: min(46vh, 460px);
+  overflow: auto;
+  white-space: pre-wrap;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fffdfa;
+  padding: 12px;
+}
+
+.message-read-photos {
+  display: grid;
+  gap: 10px;
 }
 
 .unread-indicator {

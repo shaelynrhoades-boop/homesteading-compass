@@ -355,6 +355,24 @@
               </div>
             </form>
           </dialog>
+          <dialog class="message-dialog" id="messageReadDialog">
+            <div class="message-compose">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Post Box</div>
+                  <h3 id="messageReadTitle">Message</h3>
+                </div>
+                <button class="icon-button" type="button" id="closeMessageReadDialog" aria-label="Close message">×</button>
+              </div>
+              <p class="message-read-meta" id="messageReadMeta"></p>
+              <div class="message-read-body" id="messageReadBody"></div>
+              <div class="message-read-photos" id="messageReadPhotos"></div>
+              <div class="button-row">
+                <button class="button compact secondary" type="button" id="readerInProgress" data-message-status="In Progress">In Progress</button>
+                <button class="button compact secondary" type="button" id="readerComplete" data-message-status="Completed">Completed</button>
+              </div>
+            </div>
+          </dialog>
         </section>
 
         <section class="tab-panel" id="panel-post-box">

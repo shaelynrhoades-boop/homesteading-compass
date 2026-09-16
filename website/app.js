@@ -1483,6 +1483,51 @@ function getMessageContacts() {
   });
 }
 
+function messageStatus(message) {
+  if (message.status === "Completed" || message.completed) return "Completed";
+  if (message.status === "In Progress") return "In Progress";
+  return "Received";
+}
+
+function setMessageStatus(messageId, status) {
+  state.messages = state.messages.map((message) =>
+    message.id === messageId
+      ? { ...message, status, unread: status === "Completed" ? false : message.unread }
+      : message,
+  );
+  saveState();
+  renderMessages();
+  notify(status === "Completed" ? "Message moved to Completed." : "Message updated.");
+}
+
+function openMessageReader(messageId) {
+  const message = state.messages.find((item) => item.id === messageId);
+  if (!message) return;
+  state.messages = state.messages.map((item) => (item.id === messageId ? { ...item, unread: false } : item));
+  saveState();
+  const title = $("#messageReadTitle");
+  const body = $("#messageReadBody");
+  const meta = $("#messageReadMeta");
+  const photos = $("#messageReadPhotos");
+  if (title) title.textContent = message.subject || "Message";
+  if (meta) {
+    meta.textContent = `${messageStatus(message)} · ${message.category || "General"} · ${formatDate(message.createdAt)}`;
+  }
+  if (body) body.textContent = message.body || "";
+  if (photos) {
+    const allPhotos = Array.isArray(message.photos) ? message.photos : message.photo ? [message.photo] : [];
+    photos.innerHTML = allPhotos
+      .map((photo) => `<img class="message-photo large-photo" src="${e(photo)}" alt="Attached message preview" />`)
+      .join("");
+  }
+  const progress = $("#readerInProgress");
+  const complete = $("#readerComplete");
+  if (progress) progress.dataset.messageStatusId = message.id;
+  if (complete) complete.dataset.messageStatusId = message.id;
+  $("#messageReadDialog")?.showModal();
+  renderMessages();
+}
+
 function setComposeDraft(contact) {
   $("#composeRecipient").value = contact.id;
   $("#messageDialogTitle").textContent = contact.name;
@@ -1812,9 +1857,9 @@ function renderMessages() {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  const unread = state.messages.some((message) => message.unread);
+  const unread = state.messages.some((message) => message.unread && messageStatus(message) !== "Completed");
   indicator.classList.toggle("visible", unread);
-  if (openCount) openCount.textContent = String(state.messages.length);
+  if (openCount) openCount.textContent = String(state.messages.filter((message) => messageStatus(message) !== "Completed").length);
   const contacts = getMessageContacts();
   if (contactCount) contactCount.textContent = String(Math.max(0, contacts.length - 1));
   if (contactList) {
@@ -1831,31 +1876,59 @@ function renderMessages() {
       .join("");
   }
 
-  list.innerHTML = messages
-    .map(
-      (message) => `
-        <article class="message-card ${message.unread ? "unread" : ""}">
+  const renderMessageCard = (message) => {
+    const status = messageStatus(message);
+    const preview = firstText(message.body).slice(0, 140);
+    return `
+      <article class="message-card ${message.unread ? "unread" : ""}">
+        <button class="message-card-main" type="button" data-open-message="${e(message.id)}">
           <div class="message-meta">
+            <span>${e(status)}</span>
             <span>${e(message.category)}</span>
             <span>${formatDate(message.createdAt)}</span>
           </div>
           <h3>${e(message.subject)}</h3>
           ${message.recipientName ? `<p class="seller-line">To: ${e(message.recipientName)}</p>` : ""}
-          <p>${e(message.body)}</p>
-          ${
-            Array.isArray(message.photos)
-              ? message.photos.map((photo) => `<img class="message-photo" src="${photo}" alt="Attached preview" />`).join("")
-              : message.photo
-                ? `<img class="message-photo" src="${message.photo}" alt="Attached preview" />`
-                : ""
-          }
-          <button class="button compact secondary" type="button" data-read-message="${message.id}">
+          <p>${e(preview)}${message.body && message.body.length > preview.length ? "..." : ""}</p>
+        </button>
+        <div class="message-actions">
+          <button class="button compact secondary" type="button" data-message-status-id="${e(message.id)}" data-message-status="In Progress">In Progress</button>
+          <button class="button compact secondary" type="button" data-message-status-id="${e(message.id)}" data-message-status="Completed">Completed</button>
+          <button class="button compact secondary" type="button" data-read-message="${e(message.id)}">
             ${message.unread ? "Mark Read" : "Mark Unread"}
           </button>
-        </article>
-      `,
-    )
-    .join("");
+        </div>
+      </article>
+    `;
+  };
+  const activeMessages = messages.filter((message) => messageStatus(message) !== "Completed");
+  const completedMessages = messages.filter((message) => messageStatus(message) === "Completed");
+  const grouped = activeMessages.reduce((groups, message) => {
+    const categoryName = message.category || "General";
+    groups[categoryName] = groups[categoryName] || [];
+    groups[categoryName].push(message);
+    return groups;
+  }, {});
+  const activeMarkup =
+    Object.entries(grouped)
+      .map(
+        ([categoryName, groupMessages]) => `
+          <details class="group-panel message-group" open>
+            <summary>${e(categoryName)} <span>${groupMessages.length}</span></summary>
+            ${groupMessages.map(renderMessageCard).join("")}
+          </details>
+        `,
+      )
+      .join("") || `<p class="muted">No active messages match these filters.</p>`;
+  const completedMarkup = completedMessages.length
+    ? `
+      <details class="group-panel message-group completed-group">
+        <summary>Completed <span>${completedMessages.length}</span></summary>
+        ${completedMessages.map(renderMessageCard).join("")}
+      </details>
+    `
+    : "";
+  list.innerHTML = `${activeMarkup}${completedMarkup}`;
 }
 
 function renderAlerts() {
@@ -2623,6 +2696,19 @@ document.addEventListener("click", async (event) => {
   if (target.id === "saveMessageDraft") {
     saveCurrentMessageDraft();
     renderMessages();
+  }
+
+  if (target.dataset.openMessage) {
+    openMessageReader(target.dataset.openMessage);
+  }
+
+  if (target.id === "closeMessageReadDialog") {
+    $("#messageReadDialog")?.close();
+  }
+
+  if (target.dataset.messageStatusId && target.dataset.messageStatus) {
+    setMessageStatus(target.dataset.messageStatusId, target.dataset.messageStatus);
+    if (target.id === "readerComplete") $("#messageReadDialog")?.close();
   }
 
   if (target.dataset.focusPin) {
