@@ -240,6 +240,67 @@
             <div class="stand-cards" id="standCards"></div>
             <article class="tool-panel stand-detail" id="standDetail"></article>
           </div>
+          <dialog class="message-dialog" id="inventoryDialog">
+            <form class="message-compose" id="inventoryEditForm">
+              <div class="panel-title-row">
+                <div>
+                  <div class="eyebrow">Farm Stand</div>
+                  <h3>Edit Inventory Item</h3>
+                </div>
+                <button class="icon-button" type="button" id="closeInventoryDialog" aria-label="Close inventory editor">×</button>
+              </div>
+              <input id="editItemId" type="hidden" />
+              <label>
+                Item
+                <input id="editItemName" type="text" required />
+              </label>
+              <label>
+                Category
+                <select id="editItemCategory">
+                  <option>Baked Goods</option>
+                  <option>Eggs</option>
+                  <option>Flowers</option>
+                  <option>Honey</option>
+                  <option>Livestock</option>
+                  <option>Meat</option>
+                  <option>Milk</option>
+                  <option>Produce</option>
+                  <option>Seedlings</option>
+                  <option>Supplies</option>
+                </select>
+              </label>
+              <div class="dialog-grid">
+                <label>
+                  Quantity
+                  <input id="editItemQty" type="number" min="0" />
+                </label>
+                <label>
+                  Low alert
+                  <input id="editItemLow" type="number" min="0" />
+                </label>
+                <label>
+                  Unit
+                  <input id="editItemUnit" type="text" />
+                </label>
+                <label>
+                  Price
+                  <input id="editItemPrice" type="text" />
+                </label>
+              </div>
+              <label>
+                Baked, harvested, or packed date
+                <input id="editItemDate" type="date" />
+              </label>
+              <label>
+                Description
+                <textarea id="editItemDescription" rows="3"></textarea>
+              </label>
+              <div class="button-row">
+                <button class="button" type="submit">Save Item</button>
+                <button class="button secondary" type="button" id="deleteInventoryItem">Delete Item</button>
+              </div>
+            </form>
+          </dialog>
         </section>
 
         <section class="tab-panel" id="panel-post-box">
@@ -489,6 +550,10 @@
                   <option value="">No contact linked</option>
                 </select>
               </label>
+              <label>
+                Photo
+                <input id="animalPhoto" type="file" accept="image/*" />
+              </label>
               <button class="button" type="submit">Save Animal</button>
             </form>
             <div class="animal-board" id="animalBoard"></div>
@@ -530,6 +595,11 @@
                 Link workshop project
                 <select id="notebookProject"></select>
               </label>
+              <div class="button-row">
+                <button class="button compact secondary" type="button" id="insertChecklistNote">Checklist</button>
+                <button class="button compact secondary" type="button" id="insertBulletNote">Bullets</button>
+                <button class="button compact secondary" type="button" id="createWorkshopProjectFromNote">Create Project</button>
+              </div>
               <button class="button" type="submit">Save Note</button>
             </form>
             <article class="tool-panel">
@@ -596,6 +666,10 @@
                 </select>
               </label>
               <label>
+                Last cooked
+                <input id="recipeLastCooked" type="date" />
+              </label>
+              <label>
                 Main ingredients
                 <input id="recipeIngredients" type="text" placeholder="eggs, tomatoes, basil" />
               </label>
@@ -603,7 +677,10 @@
                 Notes
                 <textarea id="recipeNotes" rows="3" placeholder="Instructions, yield, pantry notes"></textarea>
               </label>
-              <button class="button" type="submit">Save Recipe</button>
+              <div class="button-row">
+                <button class="button" type="submit">Save Recipe</button>
+                <button class="button secondary" type="submit" data-recipe-publish="true">Save and Publish</button>
+              </div>
             </form>
             <div class="recipe-list" id="recipeList"></div>
           </div>

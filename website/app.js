@@ -517,6 +517,28 @@ function getStandStockStatus(stand) {
   return getLowItems(stand).length ? "low" : "good";
 }
 
+function inventoryCategoryOptions(selected = "Produce") {
+  return ["Baked Goods", "Eggs", "Flowers", "Honey", "Livestock", "Meat", "Milk", "Produce", "Seedlings", "Supplies"]
+    .map((category) => `<option${category === selected ? " selected" : ""}>${e(category)}</option>`)
+    .join("");
+}
+
+function openInventoryEditor(itemId) {
+  const stand = state.stands.find((item) => item.id === state.selectedStandId);
+  const item = stand?.items.find((entry) => entry.id === itemId);
+  if (!stand || !item) return;
+  $("#editItemId").value = item.id;
+  $("#editItemName").value = item.name || "";
+  $("#editItemCategory").value = item.category || "Produce";
+  $("#editItemQty").value = item.quantity ?? 0;
+  $("#editItemLow").value = item.lowAt ?? 0;
+  $("#editItemUnit").value = item.unit || "";
+  $("#editItemPrice").value = item.price || "";
+  $("#editItemDate").value = item.date || "";
+  $("#editItemDescription").value = item.description || "";
+  $("#inventoryDialog")?.showModal();
+}
+
 function getMessageContacts() {
   const contacts = new Map();
   contacts.set("support", {
@@ -723,8 +745,14 @@ function renderStands() {
                   </div>
                   <form class="inline-form add-item-form" id="itemForm" hidden>
                     <input id="itemName" type="text" placeholder="Item name" required />
+                    <select id="itemCategory" aria-label="Inventory category">
+                      ${inventoryCategoryOptions()}
+                    </select>
                     <input id="itemQty" type="number" min="0" placeholder="Qty" required />
                     <input id="itemUnit" type="text" placeholder="Unit" />
+                    <input id="itemPrice" type="text" placeholder="Price" />
+                    <input id="itemDate" type="date" aria-label="Baked, harvested, or packed date" />
+                    <input id="itemDescription" type="text" placeholder="Description" />
                     <button class="button compact" type="submit">Add</button>
                   </form>
                   <div class="inventory-list">
@@ -732,7 +760,11 @@ function renderStands() {
                       .map(
                         (item) => `
                           <div class="inventory-row ${Number(item.quantity) <= Number(item.lowAt) ? "low" : ""}">
-                            <strong>${e(item.name)}</strong>
+                            <button class="inventory-edit-button" type="button" data-edit-item="${item.id}">
+                              <strong>${e(item.name)}</strong>
+                              <em>${e(item.category || "Inventory")} · ${e(item.price || "No price")} ${item.date ? `· ${formatShortDate(item.date)}` : ""}</em>
+                              ${item.description ? `<small>${e(item.description)}</small>` : ""}
+                            </button>
                             <div class="quantity-control">
                               <button type="button" data-adjust-item="${item.id}" data-delta="-1">−</button>
                               <span>${e(item.quantity)} ${e(item.unit || "")}</span>
@@ -1143,9 +1175,19 @@ function renderAnimals() {
             <span>${e(animal.status || "Active")}</span>
           </div>
           <h3>${e(animal.name)}</h3>
+          ${animal.photo ? `<img class="listing-photo animal-photo" src="${e(animal.photo)}" alt="" />` : ""}
           <p class="stand-location">${e(animal.tag || "No tag")}</p>
           ${contact ? `<p class="seller-line">Contact: ${e(contact.name)} (${e(contact.type)})</p>` : ""}
           <p>${lastNote ? e(lastNote.body) : "No notes yet."}</p>
+          ${
+            animal.sales?.length
+              ? `<p class="seller-line">Sales: ${animal.sales.map((sale) => `${e(sale.amount)} on ${formatShortDate(sale.date)}`).join(", ")}</p>`
+              : ""
+          }
+          <div class="button-row">
+            <button class="button compact secondary" type="button" data-log-sale="${animal.id}">Sales</button>
+            <button class="button compact secondary" type="button" data-open-message-contact="contact-${e(animal.contactId || "")}">Contact</button>
+          </div>
           <form class="inline-form note-form" data-animal-note="${animal.id}">
             <select name="type">
               <option>Health</option>
@@ -1207,11 +1249,13 @@ function renderRecipes() {
           </div>
           <h3>${e(recipe.title)}</h3>
           <p class="stand-location">${e(recipe.ingredients || "No ingredients listed")}</p>
+          ${recipe.lastCooked ? `<p class="seller-line">Last cooked: ${formatShortDate(recipe.lastCooked)}</p>` : ""}
           <p>${e(recipe.notes)}</p>
           <div class="reaction-row" aria-label="Public recipe actions">
-            <span>♡ Like</span>
-            <span>☆ Save</span>
-            <span>Duplicate</span>
+            <button type="button" data-toggle-recipe-like="${recipe.id}">${recipe.liked ? "♥ Liked" : "♡ Like"}</button>
+            <button type="button" data-save-neighbor-recipe="${recipe.id}">☆ Save</button>
+            <button type="button" data-duplicate-recipe="${recipe.id}">Duplicate</button>
+            ${recipe.published ? "<span>Published</span>" : ""}
           </div>
           <button class="button compact secondary" type="button" data-delete-recipe="${recipe.id}">Remove</button>
         </article>
@@ -1276,6 +1320,9 @@ function renderNotebook() {
             </div>
             <button class="button compact secondary" type="button" data-print-notebook="${e(title)}">Print</button>
           </div>
+          <div class="notebook-tree">
+            ${renderNotebookTree(entries)}
+          </div>
           <div class="notebook-entry-list">
             ${entries
               .map((entry) => {
@@ -1294,6 +1341,30 @@ function renderNotebook() {
       `,
     )
     .join("");
+}
+
+function renderNotebookTree(entries) {
+  const paths = entries.map((entry) => entry.path || "General");
+  const roots = {};
+  paths.forEach((path) => {
+    let node = roots;
+    path
+      .split(">")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .forEach((part) => {
+        node[part] = node[part] || {};
+        node = node[part];
+      });
+  });
+  const renderBranch = (branch) =>
+    Object.entries(branch)
+      .map(([name, children]) => {
+        const childMarkup = renderBranch(children);
+        return `<li><span>${e(name)}</span>${childMarkup ? `<ul>${childMarkup}</ul>` : ""}</li>`;
+      })
+      .join("");
+  return `<ul>${renderBranch(roots)}</ul>`;
 }
 
 function renderProfile() {
@@ -1508,6 +1579,28 @@ document.addEventListener("click", async (event) => {
     }
   }
 
+  if (target.dataset.editItem) {
+    openInventoryEditor(target.dataset.editItem);
+  }
+
+  if (target.id === "closeInventoryDialog") {
+    $("#inventoryDialog")?.close();
+  }
+
+  if (target.id === "deleteInventoryItem") {
+    const itemId = $("#editItemId")?.value;
+    if (!itemId || !window.confirm("Delete this inventory item?")) return;
+    state.stands = state.stands.map((stand) =>
+      stand.id === state.selectedStandId
+        ? { ...stand, items: stand.items.filter((item) => item.id !== itemId) }
+        : stand,
+    );
+    $("#inventoryDialog")?.close();
+    saveState();
+    renderAll();
+    notify("Inventory item deleted.");
+  }
+
   if (target.dataset.shareStand) {
     const stand = state.stands.find((item) => item.id === target.dataset.shareStand);
     if (stand) {
@@ -1570,11 +1663,86 @@ document.addEventListener("click", async (event) => {
   }
 
   if (target.dataset.deleteRecipe) {
-    if (!window.confirm("Delete this recipe? Choose OK to remove it from this preview.")) return;
+    if (!window.confirm("Are you sure you want to delete this? Choose OK to Trash Recipe or Cancel to Keep Recipe.")) return;
     state.recipes = state.recipes.filter((recipe) => recipe.id !== target.dataset.deleteRecipe);
     saveState();
     renderRecipes();
     notify("Recipe removed.");
+  }
+
+  if (target.dataset.duplicateRecipe) {
+    const recipe = state.recipes.find((item) => item.id === target.dataset.duplicateRecipe);
+    if (!recipe) return;
+    state.recipes.unshift({
+      ...recipe,
+      id: `recipe-${Date.now()}`,
+      title: `${recipe.title} Copy`,
+      source: "Your Recipe",
+      published: false,
+    });
+    saveState();
+    renderRecipes();
+    notify("Recipe duplicated.");
+  }
+
+  if (target.dataset.saveNeighborRecipe) {
+    const recipe = state.recipes.find((item) => item.id === target.dataset.saveNeighborRecipe);
+    if (!recipe) return;
+    state.recipes.unshift({
+      ...recipe,
+      id: `recipe-${Date.now()}`,
+      source: "Neighbor's Recipe",
+      saved: true,
+      published: false,
+    });
+    saveState();
+    renderRecipes();
+    notify("Saved to Neighbor's Recipe.");
+  }
+
+  if (target.dataset.toggleRecipeLike) {
+    state.recipes = state.recipes.map((recipe) =>
+      recipe.id === target.dataset.toggleRecipeLike ? { ...recipe, liked: !recipe.liked } : recipe,
+    );
+    saveState();
+    renderRecipes();
+  }
+
+  if (target.dataset.logSale) {
+    const animal = state.animals.find((item) => item.id === target.dataset.logSale);
+    if (!animal) return;
+    const amount = window.prompt(`Sale amount for ${animal.name}`, "$");
+    if (!amount?.trim()) return;
+    animal.sales = [
+      { id: `sale-${Date.now()}`, amount: amount.trim(), date: new Date().toISOString().slice(0, 10) },
+      ...(animal.sales || []),
+    ];
+    saveState();
+    renderAnimals();
+    notify("Livestock sale saved.");
+  }
+
+  if (target.id === "insertChecklistNote") {
+    const body = $("#notebookBody");
+    if (body) body.value = `${body.value}${body.value ? "\n" : ""}[ ] Checklist item`;
+    body?.focus();
+  }
+
+  if (target.id === "insertBulletNote") {
+    const body = $("#notebookBody");
+    if (body) body.value = `${body.value}${body.value ? "\n" : ""}- Bullet point\n  - Sub bullet`;
+    body?.focus();
+  }
+
+  if (target.id === "createWorkshopProjectFromNote") {
+    const title = $("#notebookTitle")?.value.trim() || "Notebook Project";
+    const project = { id: `project-${Date.now()}`, title, status: "Idea" };
+    state.workshopProjects.unshift(project);
+    const select = $("#notebookProject");
+    saveState();
+    renderNotebook();
+    if (select) select.value = project.id;
+    notify("Workshop project created and linked.");
   }
 
   if (target.dataset.printNotebook) {
@@ -1787,13 +1955,47 @@ document.addEventListener("submit", async (event) => {
     stand.items.push({
       id: `item-${Date.now()}`,
       name: $("#itemName").value.trim(),
+      category: $("#itemCategory").value,
       quantity: Number($("#itemQty").value || 0),
       lowAt: 3,
       unit: $("#itemUnit").value.trim(),
+      price: $("#itemPrice").value.trim(),
+      date: $("#itemDate").value,
+      description: $("#itemDescription").value.trim(),
     });
     event.target.reset();
     saveState();
     renderAll();
+  }
+
+  if (event.target.id === "inventoryEditForm") {
+    const itemId = $("#editItemId").value;
+    state.stands = state.stands.map((stand) =>
+      stand.id === state.selectedStandId
+        ? {
+            ...stand,
+            items: stand.items.map((item) =>
+              item.id === itemId
+                ? {
+                    ...item,
+                    name: $("#editItemName").value.trim(),
+                    category: $("#editItemCategory").value,
+                    quantity: Number($("#editItemQty").value || 0),
+                    lowAt: Number($("#editItemLow").value || 0),
+                    unit: $("#editItemUnit").value.trim(),
+                    price: $("#editItemPrice").value.trim(),
+                    date: $("#editItemDate").value,
+                    description: $("#editItemDescription").value.trim(),
+                  }
+                : item,
+            ),
+          }
+        : stand,
+    );
+    $("#inventoryDialog")?.close();
+    saveState();
+    renderAll();
+    notify("Inventory item saved.");
   }
 
   if (event.target.id === "messageForm") {
@@ -1842,6 +2044,8 @@ document.addEventListener("submit", async (event) => {
   }
 
   if (event.target.id === "animalForm") {
+    const photoFile = $("#animalPhoto").files?.[0];
+    const photo = photoFile ? await fileToDataUrl(photoFile) : "";
     state.animals.unshift({
       id: `animal-${Date.now()}`,
       name: $("#animalName").value.trim(),
@@ -1849,6 +2053,7 @@ document.addEventListener("submit", async (event) => {
       tag: $("#animalTag").value.trim(),
       status: "Active",
       contactId: $("#animalContact")?.value || "",
+      photo,
       notes: $("#animalNote").value.trim()
         ? [
             {
@@ -1920,18 +2125,21 @@ document.addEventListener("submit", async (event) => {
   }
 
   if (event.target.id === "recipeForm") {
+    const publish = event.submitter?.dataset.recipePublish === "true";
     state.recipes.unshift({
       id: `recipe-${Date.now()}`,
       title: $("#recipeTitle").value.trim(),
       type: $("#recipeType").value,
       ingredients: $("#recipeIngredients").value.trim(),
       notes: $("#recipeNotes").value.trim(),
+      lastCooked: $("#recipeLastCooked").value,
       source: "Your Recipe",
+      published: publish,
     });
     event.target.reset();
     saveState();
     renderRecipes();
-    notify("Recipe saved.");
+    notify(publish ? "Recipe saved and published." : "Recipe saved.");
   }
 
   if (event.target.id === "profileForm") {
