@@ -4,6 +4,7 @@ let currentUser = null;
 let cloudSaveTimer = null;
 let appRecordSaveTimer = null;
 let profileContactSaveTimer = null;
+let operationsSaveTimer = null;
 let syncingFromCloud = false;
 let appRecordSyncEnabled = false;
 
@@ -459,6 +460,7 @@ function saveState() {
   scheduleCloudSave();
   scheduleCentralAppDataSave();
   scheduleProfileContactSave();
+  scheduleOperationsSave();
 }
 
 function getSupabaseAdapter() {
@@ -493,6 +495,16 @@ function scheduleProfileContactSave() {
   profileContactSaveTimer = window.setTimeout(() => {
     saveProfileAndContacts({ quiet: true });
   }, 1600);
+}
+
+function scheduleOperationsSave() {
+  if (syncingFromCloud || !appRecordSyncEnabled) return;
+  const adapter = getSupabaseAdapter();
+  if (!currentUser || !adapter?.saveScopedRecord) return;
+  window.clearTimeout(operationsSaveTimer);
+  operationsSaveTimer = window.setTimeout(() => {
+    saveOperationalAppData({ quiet: true });
+  }, 2000);
 }
 
 async function refreshCurrentUser() {
@@ -975,6 +987,166 @@ async function saveProfileAndContacts(options = {}) {
     return true;
   } catch {
     if (!options.quiet) notify("Section 2 profile and contacts could not be saved.");
+    return false;
+  }
+}
+
+function websiteTodoToApp(todo) {
+  return {
+    id: String(todo.id),
+    title: firstText(todo.text, todo.title, "To-Do"),
+    text: firstText(todo.text, todo.title, "To-Do"),
+    category: firstText(todo.category, "General"),
+    due: firstText(todo.due).slice(0, 10),
+    date: firstText(todo.due).slice(0, 10),
+    done: Boolean(todo.done),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function websiteChoreToApp(chore) {
+  return {
+    id: String(chore.id),
+    title: firstText(chore.name, chore.title, "Chore"),
+    name: firstText(chore.name, chore.title, "Chore"),
+    category: firstText(chore.category, "General"),
+    frequency: firstText(chore.frequency, "Daily"),
+    timeBlock: firstText(chore.timeBlock, "Daily"),
+    timeSlots: chore.timeBlock && chore.timeBlock !== "Daily" ? [chore.timeBlock] : [],
+    done: Boolean(chore.done),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildChoreListPayload(existing = {}) {
+  return {
+    ...existing,
+    activeList: existing.activeList || "chores",
+    chores: mergePreservingExisting(existing.chores, state.chores.map(websiteChoreToApp)),
+    todos: mergePreservingExisting(existing.todos, state.todos.map(websiteTodoToApp)),
+    sortTodosByDate: Boolean(existing.sortTodosByDate),
+    lastResetDate: existing.lastResetDate || "",
+  };
+}
+
+function websiteStandToApp(stand) {
+  return {
+    id: String(stand.id),
+    name: firstText(stand.name, "Farm Stand"),
+    title: firstText(stand.name, "Farm Stand"),
+    location: firstText(stand.location, state.profile.area),
+    address: firstText(stand.location, state.profile.area),
+    description: firstText(stand.notes),
+    notes: firstText(stand.notes),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function websiteFarmStandItemToApp(item, stand) {
+  return {
+    id: String(item.id),
+    standId: String(stand.id),
+    name: firstText(item.name, "Inventory item"),
+    title: firstText(item.name, "Inventory item"),
+    category: firstText(item.category, "Inventory"),
+    type: firstText(item.category, "Inventory"),
+    quantity: Number(item.quantity || 0),
+    qty: Number(item.quantity || 0),
+    lowAt: Number(item.lowAt || 0),
+    lowStockAt: Number(item.lowAt || 0),
+    unit: firstText(item.unit),
+    price: firstText(item.price),
+    date: firstText(item.date).slice(0, 10),
+    description: firstText(item.description),
+    notes: firstText(item.description),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildFarmStandPayload(existing = {}) {
+  const farmStands = state.stands.map(websiteStandToApp);
+  const items = state.stands.flatMap((stand) => asArray(stand.items).map((item) => websiteFarmStandItemToApp(item, stand)));
+  return {
+    ...existing,
+    farmStands: mergePreservingExisting(existing.farmStands, farmStands),
+    items: mergePreservingExisting(existing.items, items),
+    sales: asArray(existing.sales),
+    activeStandId: state.selectedStandId || existing.activeStandId || farmStands[0]?.id || "",
+    showContactDetails: Boolean(existing.showContactDetails),
+    showInventoryForm: Boolean(existing.showInventoryForm),
+    showInventoryList: existing.showInventoryList !== false,
+    email: existing.email || "",
+    phone: existing.phone || "",
+    website: existing.website || "",
+  };
+}
+
+function websiteWorkshopToApp(project) {
+  return {
+    id: String(project.id),
+    title: firstText(project.title, "Workshop Project"),
+    name: firstText(project.title, "Workshop Project"),
+    status: firstText(project.status, "Idea"),
+    mode: firstText(project.status, "Idea"),
+    category: firstText(project.category, "Workshop"),
+    categoryPath: firstText(project.category, "Workshop"),
+    supplies: asArray(project.supplies).map((supply, index) => ({
+      id: String(supply.id || `${project.id}-supply-${index}`),
+      item: firstText(supply.item, "Supply"),
+      name: firstText(supply.item, "Supply"),
+      quantity: firstText(supply.quantity, "1"),
+      total: firstText(supply.total),
+      totalPrice: firstText(supply.total),
+      detail: firstText(supply.detail),
+      notes: firstText(supply.detail),
+    })),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildWorkshopPayload(existing = {}) {
+  return {
+    ...existing,
+    projects: mergePreservingExisting(existing.projects, state.workshopProjects.map(websiteWorkshopToApp)),
+  };
+}
+
+async function saveOperationalAppData(options = {}) {
+  const adapter = getSupabaseAdapter();
+  if (!adapter?.loadScopedRecord || !adapter?.saveScopedRecord) {
+    if (!options.quiet) notify("Supabase operational record saving is not available in this website build.");
+    return false;
+  }
+  try {
+    const user = currentUser || (await refreshCurrentUser());
+    if (!user) {
+      if (!options.quiet) notify("Sign in before saving operational app records.");
+      return false;
+    }
+    const [existingChores, existingFarmStand, existingWorkshop] = await Promise.all([
+      adapter.loadScopedRecord("homestead:chore-list"),
+      adapter.loadScopedRecord("draft:farm-stand"),
+      adapter.loadScopedRecord("homestead:workshop-log"),
+    ]);
+    await Promise.all([
+      adapter.saveScopedRecord(
+        "homestead:chore-list",
+        buildChoreListPayload(existingChores && typeof existingChores === "object" ? existingChores : {}),
+      ),
+      adapter.saveScopedRecord(
+        "draft:farm-stand",
+        buildFarmStandPayload(existingFarmStand && typeof existingFarmStand === "object" ? existingFarmStand : {}),
+      ),
+      adapter.saveScopedRecord(
+        "homestead:workshop-log",
+        buildWorkshopPayload(existingWorkshop && typeof existingWorkshop === "object" ? existingWorkshop : {}),
+      ),
+    ]);
+    appRecordSyncEnabled = true;
+    if (!options.quiet) notify("Section 3 operational records saved.");
+    return true;
+  } catch {
+    if (!options.quiet) notify("Section 3 operational records could not be saved.");
     return false;
   }
 }
@@ -2810,6 +2982,10 @@ document.addEventListener("click", async (event) => {
 
   if (target.id === "saveProfileContacts") {
     saveProfileAndContacts();
+  }
+
+  if (target.id === "saveOperationalAppData") {
+    saveOperationalAppData();
   }
 
   if (target.id === "saveCloudData") {
