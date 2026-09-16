@@ -123,10 +123,10 @@ const defaultState = {
     location: "Lebanon, TN",
     activeType: "",
     peoplePets: [
-      { id: "safe-1", name: "Shaelyn", role: "Adult", safe: true },
-      { id: "safe-2", name: "Farm Sitter", role: "Shared access", safe: false },
-      { id: "safe-3", name: "House Dogs", role: "Pets", safe: true },
-      { id: "safe-4", name: "Rabbitry", role: "Animals", safe: false },
+      { id: "safe-1", name: "Shaelyn", role: "Adult", detail: "Primary property contact", safe: true },
+      { id: "safe-2", name: "Farm Sitter", role: "Shared access", detail: "Has gate code and animal movement instructions", safe: false },
+      { id: "safe-3", name: "House Dogs", role: "Pets", detail: "Two dogs, crates in laundry room", safe: true },
+      { id: "safe-4", name: "Rabbitry", role: "Animals", detail: "Travel cages by back gate", safe: false },
     ],
     checklist: [
       { id: "em-1", text: "Start group alert and choose emergency type", done: true },
@@ -141,14 +141,19 @@ const defaultState = {
     ],
   },
   todos: [
-    { id: "todo-1", text: "Check Farm Stand eggs before noon", done: false },
-    { id: "todo-2", text: "Update garden watering notes", done: true },
+    { id: "todo-1", text: "Check Farm Stand eggs before noon", category: "Farm Stand", due: "2026-08-24", done: false },
+    { id: "todo-2", text: "Update garden watering notes", category: "Garden", due: "2026-08-25", done: true },
   ],
   chores: [
-    { id: "chore-1", name: "Refill poultry waterers", frequency: "Daily", done: false },
-    { id: "chore-2", name: "Turn compost and check moisture", frequency: "Weekly", done: false },
-    { id: "chore-3", name: "Inventory freezer and pantry shelves", frequency: "Monthly", done: true },
+    { id: "chore-1", name: "Refill poultry waterers", category: "Chickens", frequency: "Daily", timeBlock: "AM", done: false },
+    { id: "chore-2", name: "Turn compost and check moisture", category: "Garden", frequency: "Weekly", timeBlock: "PM", done: false },
+    { id: "chore-3", name: "Inventory freezer and pantry shelves", category: "Pantry", frequency: "Monthly", timeBlock: "Daily", done: true },
   ],
+  supplyRuns: [
+    { id: "supply-1", item: "Layer feed", category: "Chickens", quantity: "2", unit: "bags", preferredPlace: "Co-op", destination: "Feed room" },
+    { id: "supply-2", item: "Wormer", category: "Horses", quantity: "1", unit: "tube", preferredPlace: "Tractor Supply", destination: "Horse cabinet" },
+  ],
+  preferredPlaces: ["Co-op", "Tractor Supply", "Feed Mill"],
   almanacEvents: [
     { id: "alm-1", title: "Start fall brassica tray", date: "2026-08-25", source: "Garden" },
     { id: "alm-2", title: "CDT booster check for doelings", date: "2026-08-28", source: "Animal Log" },
@@ -383,6 +388,8 @@ function normalizeState(saved) {
     profile: { ...defaultState.profile, ...(saved.profile || {}) },
     todos: Array.isArray(saved.todos) ? saved.todos : clone(defaultState.todos),
     chores: Array.isArray(saved.chores) ? saved.chores : clone(defaultState.chores),
+    supplyRuns: Array.isArray(saved.supplyRuns) ? saved.supplyRuns : clone(defaultState.supplyRuns),
+    preferredPlaces: Array.isArray(saved.preferredPlaces) ? saved.preferredPlaces : clone(defaultState.preferredPlaces),
     almanacEvents: Array.isArray(saved.almanacEvents)
       ? saved.almanacEvents
       : clone(defaultState.almanacEvents),
@@ -709,13 +716,29 @@ function renderTodos() {
   const count = $("#todoCount");
   if (!list || !count) return;
   count.textContent = String(state.todos.filter((todo) => !todo.done).length);
-  list.innerHTML = state.todos
+  const grouped = state.todos.reduce((groups, todo) => {
+    const category = todo.category || "General";
+    groups[category] = groups[category] || [];
+    groups[category].push(todo);
+    return groups;
+  }, {});
+  list.innerHTML = Object.entries(grouped)
     .map(
-      (todo) => `
-        <button class="list-row ${todo.done ? "done" : ""}" type="button" data-toggle-todo="${todo.id}">
-          <span>${todo.done ? "✓" : "○"}</span>
-          <strong>${e(todo.text)}</strong>
-        </button>
+      ([category, todos]) => `
+        <details class="group-panel" open>
+          <summary>${e(category)}</summary>
+          ${todos
+            .map(
+              (todo) => `
+                <button class="list-row ${todo.done ? "done" : ""}" type="button" data-toggle-todo="${todo.id}">
+                  <span>${todo.done ? "✓" : "○"}</span>
+                  <strong>${e(todo.text)}</strong>
+                  <em>${todo.due ? formatShortDate(todo.due) : "No due date"}</em>
+                </button>
+              `,
+            )
+            .join("")}
+        </details>
       `,
     )
     .join("");
@@ -727,14 +750,57 @@ function renderChores() {
   if (!list || !count) return;
   const openChores = state.chores.filter((chore) => !chore.done);
   count.textContent = String(openChores.length);
-  list.innerHTML = state.chores
+  const grouped = state.chores.reduce((groups, chore) => {
+    const group = `${chore.category || "General"} · ${chore.timeBlock || "Daily"}`;
+    groups[group] = groups[group] || [];
+    groups[group].push(chore);
+    return groups;
+  }, {});
+  list.innerHTML = Object.entries(grouped)
     .map(
-      (chore) => `
-        <button class="list-row ${chore.done ? "done" : ""}" type="button" data-toggle-chore="${chore.id}">
-          <span>${chore.done ? "✓" : "○"}</span>
-          <strong>${e(chore.name)}</strong>
-          <em>${e(chore.frequency)}</em>
-        </button>
+      ([group, chores]) => `
+        <details class="group-panel" open>
+          <summary>${e(group)}</summary>
+          ${chores
+            .map(
+              (chore) => `
+                <button class="list-row ${chore.done ? "done" : ""}" type="button" data-toggle-chore="${chore.id}">
+                  <span>${chore.done ? "✓" : "○"}</span>
+                  <strong>${e(chore.name)}</strong>
+                  <em>${e(chore.frequency)}</em>
+                </button>
+              `,
+            )
+            .join("")}
+        </details>
+      `,
+    )
+    .join("");
+}
+
+function renderSupplyRuns() {
+  const list = $("#supplyRunList");
+  const count = $("#supplyRunCount");
+  const placeSelect = $("#supplyPlace");
+  const placeButtons = $("#preferredPlaceButtons");
+  if (!list) return;
+  if (count) count.textContent = String(state.supplyRuns.length);
+  if (placeSelect) {
+    placeSelect.innerHTML = state.preferredPlaces.map((place) => `<option>${e(place)}</option>`).join("");
+  }
+  if (placeButtons) {
+    placeButtons.innerHTML = state.preferredPlaces
+      .map((place) => `<button class="button compact secondary" type="button" data-preferred-place="${e(place)}">${e(place)}</button>`)
+      .join("");
+  }
+  list.innerHTML = state.supplyRuns
+    .map(
+      (run) => `
+        <article class="list-row supply-row-preview">
+          <span>□</span>
+          <strong>${e(run.item)}</strong>
+          <em>${e(run.category)} · ${e(run.quantity)} ${e(run.unit)} · ${e(run.preferredPlace)}</em>
+        </article>
       `,
     )
     .join("");
@@ -1004,7 +1070,7 @@ function renderEmergencyPlan() {
       (person) => `
         <button class="setup-item ${person.safe ? "done" : "warning"}" type="button" data-toggle-safe="${person.id}">
           <span>${person.safe ? "✓" : "!"}</span>
-          <strong>${e(person.name)}</strong>
+          <strong>${e(person.name)}<small>${e(person.detail || person.role)}</small></strong>
           <em>${e(person.role)}</em>
         </button>
       `,
@@ -1560,6 +1626,7 @@ function renderAll() {
   renderFarmStandSetup();
   renderTodos();
   renderChores();
+  renderSupplyRuns();
   renderAlmanacEvents();
   renderStands();
   renderMessages();
@@ -1677,6 +1744,12 @@ document.addEventListener("click", async (event) => {
     );
     saveState();
     renderAll();
+  }
+
+  if (target.dataset.preferredPlace) {
+    const select = $("#supplyPlace");
+    if (select) select.value = target.dataset.preferredPlace;
+    notify(`Preferred place set to ${target.dataset.preferredPlace}.`);
   }
 
   if (target.dataset.toggleSetup) {
@@ -2140,22 +2213,55 @@ document.addEventListener("submit", async (event) => {
   if (event.target.id === "todoForm") {
     const input = $("#todoInput");
     if (!input.value.trim()) return;
-    state.todos.unshift({ id: `todo-${Date.now()}`, text: input.value.trim(), done: false });
+    state.todos.unshift({
+      id: `todo-${Date.now()}`,
+      text: input.value.trim(),
+      category: $("#todoCategory")?.value || "General",
+      due: new Date().toISOString().slice(0, 10),
+      done: false,
+    });
     input.value = "";
     saveState();
     renderTodos();
   }
 
   if (event.target.id === "choreForm") {
-    state.chores.unshift({
+    const frequency = $("#choreFrequency").value;
+    const base = {
       id: `chore-${Date.now()}`,
       name: $("#choreName").value.trim(),
-      frequency: $("#choreFrequency").value,
+      category: $("#choreCategory").value,
+      frequency,
+      timeBlock: $("#choreTimeBlock").value,
       done: false,
-    });
+    };
+    if (frequency === "Twice Daily") {
+      state.chores.unshift({ ...base, id: `chore-${Date.now()}-pm`, timeBlock: "PM" });
+      state.chores.unshift({ ...base, id: `chore-${Date.now()}-am`, timeBlock: "AM" });
+    } else {
+      state.chores.unshift(base);
+    }
     event.target.reset();
     saveState();
     renderAll();
+  }
+
+  if (event.target.id === "supplyRunForm") {
+    const place = $("#supplyPlace").value;
+    state.supplyRuns.unshift({
+      id: `supply-${Date.now()}`,
+      item: $("#supplyItem").value.trim(),
+      category: $("#supplyCategory").value,
+      quantity: $("#supplyQuantity").value.trim() || "1",
+      unit: $("#supplyUnit").value.trim() || "item",
+      preferredPlace: place,
+      destination: `${$("#supplyCategory").value} storage`,
+    });
+    if (place && !state.preferredPlaces.includes(place)) state.preferredPlaces.unshift(place);
+    event.target.reset();
+    saveState();
+    renderAll();
+    notify("Supply run item saved.");
   }
 
   if (event.target.id === "almanacForm") {

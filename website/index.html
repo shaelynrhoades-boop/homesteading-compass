@@ -169,6 +169,13 @@
               </div>
               <form class="inline-form" id="todoForm">
                 <input id="todoInput" type="text" placeholder="Add a To Do item" />
+                <select id="todoCategory" aria-label="To Do category">
+                  <option>Animals</option>
+                  <option>Farm Stand</option>
+                  <option>Garden</option>
+                  <option>Pantry</option>
+                  <option>Workshop</option>
+                </select>
                 <button class="button compact" type="submit">Add</button>
               </form>
               <div class="stack-list" id="todoList"></div>
@@ -221,17 +228,56 @@
               </div>
               <form class="inline-form chore-form" id="choreForm">
                 <input id="choreName" type="text" placeholder="Chore name" required />
+                <select id="choreCategory">
+                  <option>Chickens</option>
+                  <option>Dairy Cows</option>
+                  <option>Garden</option>
+                  <option>Goats</option>
+                  <option>Horses</option>
+                  <option>Pantry</option>
+                </select>
                 <select id="choreFrequency">
                   <option>Daily</option>
+                  <option>Twice Daily</option>
                   <option>Weekly</option>
                   <option>Monthly</option>
                   <option>Seasonal</option>
+                </select>
+                <select id="choreTimeBlock">
+                  <option>AM</option>
+                  <option>PM</option>
+                  <option>Daily</option>
                 </select>
                 <button class="button compact" type="submit">Add</button>
               </form>
               <div class="stack-list" id="choreList"></div>
             </article>
           </div>
+          <article class="tool-panel supply-run-panel">
+            <div class="panel-title-row">
+              <div>
+                <div class="eyebrow">Supply Run</div>
+                <h3>Remembered Defaults</h3>
+              </div>
+              <span class="count-pill" id="supplyRunCount">0</span>
+            </div>
+            <form class="inline-form supply-form" id="supplyRunForm">
+              <input id="supplyItem" type="text" placeholder="Feed, wormer, bedding" required />
+              <select id="supplyCategory">
+                <option>Chickens</option>
+                <option>Dogs</option>
+                <option>Goats</option>
+                <option>Horses</option>
+                <option>Pantry</option>
+              </select>
+              <input id="supplyQuantity" type="text" placeholder="Qty" />
+              <input id="supplyUnit" type="text" placeholder="Unit" />
+              <select id="supplyPlace"></select>
+              <button class="button compact" type="submit">Add</button>
+            </form>
+            <div class="button-row" id="preferredPlaceButtons"></div>
+            <div class="stack-list" id="supplyRunList"></div>
+          </article>
         </section>
 
         <section class="tab-panel" id="panel-farm-stand">

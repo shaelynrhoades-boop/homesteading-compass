@@ -656,6 +656,14 @@ p {
   min-width: 0;
 }
 
+.setup-item small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
 .setup-item em {
   color: var(--muted);
   font-size: 13px;
@@ -704,6 +712,24 @@ p {
   min-height: 42px;
   padding: 8px 10px;
   text-align: left;
+}
+
+.group-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.group-panel summary {
+  color: var(--green);
+  cursor: pointer;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.group-panel .list-row + .list-row {
+  margin-top: 8px;
 }
 
 .list-row.done {
@@ -779,6 +805,22 @@ p {
 .chore-form,
 .weather-form {
   grid-template-columns: minmax(150px, 1fr) 150px auto;
+}
+
+.chore-form {
+  grid-template-columns: minmax(150px, 1fr) 140px 130px 110px auto;
+}
+
+.supply-run-panel {
+  margin-top: 14px;
+}
+
+.supply-form {
+  grid-template-columns: minmax(160px, 1.2fr) 130px 80px 90px 150px auto;
+}
+
+.supply-row-preview {
+  background: var(--cream);
 }
 
 .weather-card {
@@ -1822,6 +1864,7 @@ p {
   .stand-detail .inline-form,
   .almanac-form,
   .chore-form,
+  .supply-form,
   .weather-form,
   .contact-form,
   .note-form,

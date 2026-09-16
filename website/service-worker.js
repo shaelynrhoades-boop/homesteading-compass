@@ -1,4 +1,4 @@
-const CACHE_NAME = "homesteading-compass-web-v10";
+const CACHE_NAME = "homesteading-compass-web-v11";
 
 const CACHE_URLS = [
   "/",
