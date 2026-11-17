@@ -49,6 +49,7 @@ context, and Front Porch posts.
 - `/privacy-policy/`
 - `/terms/`
 - `/support/`
+- `/delete-account/`
 - `/safety/`
 - `/community-guidelines/`
 - `/marketplace-rules/`
@@ -60,4 +61,10 @@ Use this in Google Play Console after the domain is connected:
 
 ```text
 https://thehomesteadingcompass.com/privacy-policy/
+```
+
+Use this as the Google Play account-deletion URL:
+
+```text
+https://thehomesteadingcompass.com/delete-account/
 ```

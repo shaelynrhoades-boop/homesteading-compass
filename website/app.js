@@ -29,7 +29,7 @@ const defaultState = {
   profile: {
     displayName: "Homestead Owner",
     area: "Lebanon, TN",
-    tier: "Hobby Farm",
+    tier: "Full Launch Access",
   },
   contacts: [
     {
